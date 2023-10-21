@@ -1,3 +1,9 @@
+python3.13 (3.13.0~a1-1+focal1) focal; urgency=medium
+
+  * repackage for focal.
+
+ -- Anthony Sottile <asottile@umich.edu>  Sat, 21 Oct 2023 14:49:27 -0400
+
 python3.13 (3.13.0~a1-1+jammy1) jammy; urgency=medium
 
   * Python 3.13.0 alpha 1 release.
