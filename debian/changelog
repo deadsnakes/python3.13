@@ -1,20 +1,9 @@
-python3.13 (3.13.0~a3-1+jammy3) jammy; urgency=medium
+python3.13 (3.13.0~a3-1+jammy4) jammy; urgency=medium
 
   * Trivial re-release.
-
- -- Anthony Sottile <asottile@umich.edu>  Tue, 23 Jan 2024 12:28:16 -0500
-
-python3.13 (3.13.0~a3-1+jammy2) jammy; urgency=medium
-
-  * Trivial re-release.
-
- -- Anthony Sottile <asottile@umich.edu>  Tue, 23 Jan 2024 12:21:04 -0500
-
-python3.13 (3.13.0~a3-1+jammy1) jammy; urgency=medium
-
   * Python 3.13.0 alpha 3 release.
 
- -- Łukasz Langa (GPG langa.pl) <lukasz@langa.pl>  Tue, 23 Jan 2024 17:06:47 +0000
+ -- Anthony Sottile <asottile@umich.edu>  Tue, 23 Jan 2024 12:52:28 -0500
 
 python3.13 (3.13.0~a2-1+jammy1) jammy; urgency=medium
 
