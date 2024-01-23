@@ -1,3 +1,9 @@
+python3.13 (3.13.0~a3-1+focal1) focal; urgency=medium
+
+  * Python 3.13.0 alpha 3 release.
+
+ -- Łukasz Langa (GPG langa.pl) <lukasz@langa.pl>  Tue, 23 Jan 2024 16:32:23 +0000
+
 python3.13 (3.13.0~a2-1+focal1) focal; urgency=medium
 
   * Python 3.13.0 alpha 2 release.
