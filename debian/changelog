@@ -1,3 +1,9 @@
+python3.13 (3.13.0~a4-1+focal1) focal; urgency=medium
+
+  * Python 3.13.0 alpha 4 release.
+
+ -- Anthony Sottile (deadsnakes) <asottile+deadsnakes@umich.edu>  Sun, 18 Feb 2024 18:58:04 +0000
+
 python3.13 (3.13.0~a3-1+focal4) focal; urgency=medium
 
   * Trivial re-release
