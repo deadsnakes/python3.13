@@ -10,10 +10,10 @@ Subject: distutils-install-layout
  4 files changed, 69 insertions(+), 13 deletions(-)
 
 diff --git a/Lib/pydoc.py b/Lib/pydoc.py
-index 1e01be4..0c318cb 100755
+index 638ac65..ae9b6de 100755
 --- a/Lib/pydoc.py
 +++ b/Lib/pydoc.py
-@@ -555,6 +555,7 @@ class Doc:
+@@ -554,6 +554,7 @@ class Doc:
                                   'marshal', 'posix', 'signal', 'sys',
                                   '_thread', 'zipimport') or
               (file.startswith(basedir) and
@@ -22,7 +22,7 @@ index 1e01be4..0c318cb 100755
              object.__name__ not in ('xml.etree', 'test.test_pydoc.pydoc_mod')):
              if docloc.startswith(("http://", "https://")):
 diff --git a/Lib/site.py b/Lib/site.py
-index 0631f3f..957bca9 100644
+index 2aee63e..513b760 100644
 --- a/Lib/site.py
 +++ b/Lib/site.py
 @@ -7,12 +7,18 @@
