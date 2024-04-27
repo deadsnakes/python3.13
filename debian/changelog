@@ -1,3 +1,9 @@
+python3.13 (3.13.0~a5-1+noble1) noble; urgency=medium
+
+  * Repackage for ubuntu noble.
+
+ -- Anthony Sottile <asottile@umich.edu>  Sat, 27 Apr 2024 15:49:06 -0400
+
 python3.13 (3.13.0~a5-1+jammy2) jammy; urgency=medium
 
   * fix build: disable a few xml tests.
