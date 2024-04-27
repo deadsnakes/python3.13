@@ -1,3 +1,9 @@
+python3.13 (3.13.0~a6-1+noble2) noble; urgency=medium
+
+  * fix sysconfig substitution flags
+
+ -- Anthony Sottile <asottile@umich.edu>  Sat, 27 Apr 2024 17:12:50 -0400
+
 python3.13 (3.13.0~a6-1+noble1) noble; urgency=medium
 
   * Python 3.13.0 alpha 6 release.
