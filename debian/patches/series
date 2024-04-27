@@ -18,4 +18,3 @@ argparse-no-shutil.diff
 0029-destshared-location.patch
 0019-test-no-random-order.patch
 0020-don-t-require-autoconf-2.71.patch
-0021-apply-upstream-patch-9f74e86c78853c101a23e938f8e32ea.patch
