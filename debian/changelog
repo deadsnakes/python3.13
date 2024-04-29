@@ -1,3 +1,9 @@
+python3.13 (3.13.0~a6-1+noble4) noble; urgency=medium
+
+  * Restore deleted patch.
+
+ -- Anthony Sottile <asottile@umich.edu>  Mon, 29 Apr 2024 16:56:53 -0400
+
 python3.13 (3.13.0~a6-1+noble3) noble; urgency=medium
 
   * cherry-pick 9c93b7402ba.
