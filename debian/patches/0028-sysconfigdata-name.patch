@@ -15,7 +15,7 @@ Forwarded: no
  3 files changed, 6 insertions(+), 4 deletions(-)
 
 diff --git a/Lib/sysconfig/__init__.py b/Lib/sysconfig/__init__.py
-index cffff9e..e4c5a81 100644
+index 61dd330..38c01be 100644
 --- a/Lib/sysconfig/__init__.py
 +++ b/Lib/sysconfig/__init__.py
 @@ -372,7 +372,7 @@ def _get_sysconfigdata_name():
@@ -28,10 +28,10 @@ index cffff9e..e4c5a81 100644
  
  def _init_posix(vars):
 diff --git a/Makefile.pre.in b/Makefile.pre.in
-index 0487d32..2dd5c90 100644
+index d7fc7ab..d26b0d0 100644
 --- a/Makefile.pre.in
 +++ b/Makefile.pre.in
-@@ -2547,8 +2547,10 @@ libinstall:	all $(srcdir)/Modules/xxmodule.c
+@@ -2559,8 +2559,10 @@ libinstall:	all $(srcdir)/Modules/xxmodule.c
  			esac; \
  		done; \
  	done
@@ -45,7 +45,7 @@ index 0487d32..2dd5c90 100644
  	@ # Build PYC files for the 3 optimization levels (0, 1, 2)
  	-PYTHONPATH=$(DESTDIR)$(LIBDEST) $(RUNSHARED) \
 diff --git a/configure.ac b/configure.ac
-index 5760f17..86235b1 100644
+index d39eddc..e1d3551 100644
 --- a/configure.ac
 +++ b/configure.ac
 @@ -164,7 +164,7 @@ AC_ARG_WITH([build-python],
