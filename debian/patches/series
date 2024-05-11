@@ -16,4 +16,3 @@ pydoc-use-pager.diff
 argparse-no-shutil.diff
 0028-sysconfigdata-name.patch
 0029-destshared-location.patch
-0018-gh-117348-restore-import-time-performance-of-configp.patch
