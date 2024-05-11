@@ -1,3 +1,9 @@
+python3.13 (3.13.0~b1-1+noble1) noble; urgency=medium
+
+  * Python 3.13.0 beta 1 release.
+
+ -- Anthony Sottile <asottile@umich.edu>  Sat, 11 May 2024 18:32:24 +0000
+
 python3.13 (3.13.0~a6-1+noble4) noble; urgency=medium
 
   * Restore deleted patch.
