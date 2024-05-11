@@ -2,6 +2,668 @@
 Python News
 +++++++++++
 
+What's New in Python 3.13.0 beta 1?
+===================================
+
+*Release date: 2024-05-08*
+
+Security
+--------
+
+- gh-issue-116741: Update bundled libexpat to 2.6.2
+
+- gh-issue-117233: Detect BLAKE2, SHA3, Shake, & truncated SHA512 support in
+  the OpenSSL-ish libcrypto library at build time.  This allows
+  :mod:`hashlib` to be used with libraries that do not to support every
+  algorithm that upstream OpenSSL does.
+
+Core and Builtins
+-----------------
+
+- gh-issue-118414: Add instrumented opcodes to YIELD_VALUE assertion for
+  tracing cases.
+
+- gh-issue-117953: When a builtin or extension module is imported for the
+  first time, while a subinterpreter is active, the module's init function
+  is now run by the main interpreter first before import continues in the
+  subinterpreter. Consequently, single-phase init modules now fail in an
+  isolated subinterpreter without the init function running under that
+  interpreter, whereas before it would run under the subinterpreter *before*
+  failing, potentially leaving behind global state and callbacks and
+  otherwise leaving the module in an inconsistent state.
+
+- gh-issue-117549: Don't use designated initializer syntax in inline
+  functions in internal headers. They cause problems for C++ or MSVC users
+  who aren't yet using the latest C++ standard (C++20). While internal,
+  pycore_backoff.h, is included (indirectly, via pycore_code.h) by some key
+  3rd party software that does so for speed.
+
+- gh-issue-95382: Improve performance of :func:`json.dumps` and
+  :func:`json.dump` when using the argument *indent*. Depending on the data
+  the encoding using :func:`json.dumps` with *indent* can be up to 2 to 3
+  times faster.
+
+- gh-issue-116322: In ``--disable-gil`` builds, the GIL will be enabled
+  while loading C extension modules. If the module indicates that it
+  supports running without the GIL, the GIL will be disabled once loading is
+  complete. Otherwise, the GIL will remain enabled for the remainder of the
+  interpreter's lifetime. This behavior does not apply if the GIL has been
+  explicitly enabled or disabled with ``PYTHON_GIL`` or ``-Xgil``.
+
+- gh-issue-118513: Fix incorrect :exc:`UnboundLocalError` when two
+  comprehensions in the same function both reference the same name, and in
+  one comprehension the name is bound while in the other it's an implicit
+  global.
+
+- gh-issue-118518: Allow the Linux perf support to work without frame
+  pointers using perf's advanced JIT support. The feature is activated when
+  using the ``PYTHON_PERF_JIT_SUPPORT`` environment variable or when running
+  Python with ``-Xperf_jit``. Patch by Pablo Galindo.
+
+- gh-issue-117514: Add ``sys._is_gil_enabled()`` function that returns
+  whether the GIL is currently enabled.  In the default build it always
+  returns ``True`` because the GIL is always enabled.  In the free-threaded
+  build, it may return ``True`` or ``False``.
+
+- gh-issue-118164: Break a loop between the Python implementation of the
+  :mod:`decimal` module and the Python code for integer to string
+  conversion. Also optimize integer to string conversion for values in the
+  range from 9_000 to 135_000 decimal digits.
+
+- gh-issue-118473: Fix :func:`sys.set_asyncgen_hooks` not to be partially
+  set when raising :exc:`TypeError`.
+
+- gh-issue-118465: Compiler populates the new ``__firstlineno__`` field on a
+  class with the line number of the first line of the class definition.
+
+- gh-issue-118492: Fix an issue where the type cache can expose a previously
+  accessed attribute when a finalizer is run.
+
+- gh-issue-117714: update ``async_generator.athrow().close()`` and
+  ``async_generator.asend().close()`` to close their section of the
+  underlying async generator
+
+- gh-issue-111201: The :term:`interactive` interpreter is now implemented in
+  Python, which allows for a number of new features like colors, multiline
+  input, history viewing, and paste mode. Contributed by Pablo Galindo,
+  Łukasz Langa and Lysandros Nikolaou based on code from the PyPy project.
+
+- gh-issue-74929: Implement PEP 667: converted :attr:`FrameType.f_locals
+  <frame.f_locals>` and :c:func:`PyFrame_GetLocals` to return a
+  write-through proxy object when the frame refers to a function or
+  comprehension.
+
+- gh-issue-116767: Fix crash in compiler on 'async with' that has many
+  context managers.
+
+- gh-issue-118335: Change how to use the tier 2 interpreter. Instead of
+  running Python with ``-X uops`` or setting the environment variable
+  ``PYTHON_UOPS=1``, this choice is now made at build time by configuring
+  with ``--enable-experimental-jit=interpreter``.
+
+  **Beware!** This changes the environment variable to enable or disable
+  micro-ops to ``PYTHON_JIT``. The old ``PYTHON_UOPS`` is no longer used.
+
+- gh-issue-118306: Update JIT compilation to use LLVM 18
+
+- gh-issue-118160: :ref:`Annotation scopes <annotation-scopes>` within
+  classes can now contain comprehensions. However, such comprehensions are
+  not inlined into their parent scope at runtime. Patch by Jelle Zijlstra.
+
+- gh-issue-118272: Fix bug where ``generator.close`` does not free the
+  generator frame's locals.
+
+- gh-issue-118216: Don't consider :mod:`__future__` imports with dots before
+  the module name.
+
+- gh-issue-118074: Make sure that the Executor objects in the COLD_EXITS
+  array aren't assumed to be GC-able (which would access bytes outside the
+  object).
+
+- gh-issue-107674: Lazy load frame line number to improve performance of
+  tracing
+
+- gh-issue-118082: Improve :exc:`SyntaxError` message for imports without
+  names, like in ``from x import`` and ``import`` cases. It now points out
+  to users that :keyword:`import` expects at least one name after it.
+
+- gh-issue-118090: Improve :exc:`SyntaxError` message for empty type param
+  brackets.
+
+- gh-issue-102511: Speed up :func:`os.path.splitroot` with a native
+  implementation.
+
+- gh-issue-117958: Added a ``get_jit_code()`` method to access JIT compiled
+  machine code from the UOp Executor when the experimental JIT is enabled.
+  Patch by Anthony Shaw.
+
+- gh-issue-117901: Add option for compiler's codegen to save nested
+  instruction sequences for introspection.
+
+- gh-issue-116622: Redirect stdout and stderr to system log when embedded in
+  an Android app.
+
+- gh-issue-109118: :ref:`annotation scope <annotation-scopes>` within class
+  scopes can now contain lambdas.
+
+- gh-issue-117894: Prevent ``agen.aclose()`` objects being re-used after
+  ``.throw()``.
+
+- gh-issue-117881: prevent concurrent access to an async generator via
+  athrow().throw() or asend().throw()
+
+- gh-issue-115874: Fixed a possible segfault during garbage collection of
+  ``_asyncio.FutureIter`` objects
+
+- gh-issue-117536: Fix a :exc:`RuntimeWarning` when calling
+  ``agen.aclose().throw(Exception)``.
+
+- gh-issue-117755: Fix mimalloc allocator for huge memory allocation (around
+  8,589,934,592 GiB) on s390x. Patch by Victor Stinner.
+
+- gh-issue-117750: Fix issue where an object's dict would get out of sync
+  with the object's internal values when being cleared.
+  ``obj.__dict__.clear()`` now clears the internal values, but leaves the
+  dict attached to the object.
+
+- gh-issue-117431: Improve the performance of the following :class:`bytes`
+  and :class:`bytearray` methods by adapting them to the
+  :c:macro:`METH_FASTCALL` calling convention:
+
+  * :meth:`!count`
+  * :meth:`!find`
+  * :meth:`!index`
+  * :meth:`!rfind`
+  * :meth:`!rindex`
+
+- gh-issue-117709: Speed up calls to :func:`str` with positional-only
+  argument, by using the :pep:`590` ``vectorcall`` calling convention. Patch
+  by Erlend Aasland.
+
+- gh-issue-117680: Give ``_PyInstructionSequence`` a Python interface and
+  use it in tests.
+
+- gh-issue-115776: Statically allocated objects are, by definition, immortal
+  so must be marked as such regardless of whether they are in extension
+  modules or not.
+
+- gh-issue-117641: Speedup :func:`os.path.commonpath` on Unix.
+
+- gh-issue-117636: Speedup :func:`os.path.join`.
+
+- gh-issue-117607: Speedup :func:`os.path.relpath`.
+
+- gh-issue-117385: Remove unhandled ``PY_MONITORING_EVENT_BRANCH`` and
+  ``PY_MONITORING_EVENT_EXCEPTION_HANDLED`` events from
+  :func:`sys.settrace`.
+
+- gh-issue-116322: Extension modules may indicate to the runtime that they
+  can run without the GIL. Multi-phase init modules do so by calling
+  providing ``Py_MOD_GIL_NOT_USED`` for the ``Py_mod_gil`` slot, while
+  single-phase init modules call ``PyUnstable_Module_SetGIL(mod,
+  Py_MOD_GIL_NOT_USED)`` from their init function.
+
+- gh-issue-116129: Implement :pep:`696`, adding support for defaults on type
+  parameters. Patch by Jelle Zijlstra.
+
+- gh-issue-93502: Add two new functions to the C-API,
+  :c:func:`PyRefTracer_SetTracer` and :c:func:`PyRefTracer_GetTracer`, that
+  allows to track object creation and destruction the same way the
+  :mod:`tracemalloc` module does. Patch by Pablo Galindo
+
+- gh-issue-107674: Improved the performance of :func:`sys.settrace`
+  significantly
+
+- gh-issue-95754: Improve the error message when a script shadowing a module
+  from the standard library causes :exc:`AttributeError` to be raised.
+  Similarly, improve the error message when a script shadowing a third party
+  module attempts to access an attribute from that third party module while
+  still initialising.
+
+- gh-issue-99180: Elide uninformative traceback indicators in ``return`` and
+  simple ``assignment`` statements. Patch by Pablo Galindo.
+
+- gh-issue-105879: Allow the *globals* and *locals* arguments to
+  :func:`exec` and :func:`eval` to be passed as keywords.
+
+Library
+-------
+
+- gh-issue-118418: A :exc:`DeprecationWarning` is now emitted if you fail to
+  pass a value to the new *type_params* parameter of ``typing._eval_type()``
+  or ``typing.ForwardRef._evaluate()``. (Using either of these private and
+  undocumented functions is discouraged to begin with, but failing to pass a
+  value to the ``type_params`` parameter may lead to incorrect behaviour on
+  Python 3.12 or newer.)
+
+- gh-issue-118660: Add an optional second type parameter to
+  :class:`typing.ContextManager` and :class:`typing.AsyncContextManager`,
+  representing the return types of :meth:`~object.__exit__` and
+  :meth:`~object.__aexit__` respectively. This parameter defaults to ``bool
+  | None``.
+
+- gh-issue-118650: The ``enum`` module allows method named ``_repr_*`` to be
+  defined on ``Enum`` types.
+
+- gh-issue-118648: Add type parameter defaults to :class:`typing.Generator`
+  and :class:`typing.AsyncGenerator`.
+
+- gh-issue-101137: Mime type ``text/x-rst`` is now supported by
+  :mod:`mimetypes`.
+
+- gh-issue-118164: The Python implementation of the ``decimal`` module could
+  appear to hang in relatively small power cases (like ``2**117``) if
+  context precision was set to a very high value. A different method to
+  check for exactly representable results is used now that doesn't rely on
+  computing ``10**precision`` (which could be effectively too large to
+  compute).
+
+- gh-issue-111744: ``breakpoint()`` and ``pdb.set_trace()`` now enter the
+  debugger immediately after the call rather than before the next line is
+  executed.
+
+- gh-issue-118500: Add :mod:`pdb` support for zipapps
+
+- gh-issue-118406: Add signature for :class:`sqlite3.Connection` objects.
+
+- gh-issue-101732: Use a Y2038 compatible openssl time function when
+  available.
+
+- gh-issue-118404: Fix :func:`inspect.signature` for non-comparable
+  callables.
+
+- gh-issue-118402: Fix :func:`inspect.signature` for the result of the
+  :func:`functools.cmp_to_key` call.
+
+- gh-issue-116622: On Android, :any:`sysconfig.get_platform` now returns the
+  format specified by :pep:`738`.
+
+- gh-issue-118285: Allow to specify the signature of custom callable
+  instances of extension type by the :attr:`__text_signature__` attribute.
+  Specify signatures of :class:`operator.attrgetter`,
+  :class:`operator.itemgetter`, and :class:`operator.methodcaller`
+  instances.
+
+- gh-issue-118314: Fix an edge case in :func:`binascii.a2b_base64` strict
+  mode, where excessive padding is not detected when no padding is
+  necessary.
+
+- gh-issue-118271: Add the :class:`!PhotoImage` methods
+  :meth:`~tkinter.PhotoImage.read` to read an image from a file and
+  :meth:`~tkinter.PhotoImage.data` to get the image data. Add *background*
+  and *grayscale* parameters to :class:`!PhotoImage` method
+  :meth:`~tkinter.PhotoImage.write`.
+
+- gh-issue-118225: Add the :class:`!PhotoImage` method :meth:`!copy_replace`
+  to copy a region from one image to other image, possibly with pixel
+  zooming and/or subsampling. Add *from_coords* parameter to
+  :class:`!PhotoImage` methods :meth:`!copy()`, :meth:`!zoom()` and
+  :meth:`!subsample()`. Add *zoom* and *subsample* parameters to
+  :class:`!PhotoImage` method :meth:`!copy()`.
+
+- gh-issue-118221: Fix a bug where :meth:`sqlite3.Connection.iterdump` could
+  fail if a custom :attr:`row factory <sqlite3.Connection.row_factory>` was
+  used. Patch by Erlend Aasland.
+
+- gh-issue-118013: Fix regression introduced in gh-103193 that meant that
+  calling :func:`inspect.getattr_static` on an instance would cause a strong
+  reference to that instance's class to persist in an internal cache in the
+  :mod:`inspect` module. This caused unexpected memory consumption if the
+  class was dynamically created, the class held strong references to other
+  objects which took up a significant amount of memory, and the cache
+  contained the sole strong reference to the class. The fix for the
+  regression leads to a slowdown in :func:`!getattr_static`, but the
+  function should still be significantly faster than it was in Python 3.11.
+  Patch by Alex Waygood.
+
+- gh-issue-118218: Speed up :func:`itertools.pairwise` in the common case by
+  up to 1.8x.
+
+- gh-issue-117486: Improve the behavior of user-defined subclasses of
+  :class:`ast.AST`. Such classes will now require no changes in the usual
+  case to conform with the behavior changes of the :mod:`ast` module in
+  Python 3.13. Patch by Jelle Zijlstra.
+
+- gh-issue-90848: Fixed :func:`unittest.mock.create_autospec` to configure
+  parent mock with keyword arguments.
+
+- gh-issue-118168: Fix incorrect argument substitution when
+  :data:`typing.Unpack` is used with the builtin :class:`tuple`.
+  :data:`!typing.Unpack` now raises :exc:`TypeError` when used with certain
+  invalid types. Patch by Jelle Zijlstra.
+
+- gh-issue-118131: Add command-line interface for the :mod:`random` module.
+  Patch by Hugo van Kemenade.
+
+- gh-issue-118107: Fix :mod:`zipimport` reading of ZIP64 files with file
+  entries that are too big or offset too far.
+
+- gh-issue-117535: Change the unknown filename of :mod:`warnings` from
+  ``sys`` to ``<sys>`` to clarify that it's not a real filename.
+
+- gh-issue-114053: Fix erroneous :exc:`NameError` when calling
+  :func:`typing.get_type_hints` on a class that made use of :pep:`695` type
+  parameters in a module that had ``from __future__ import annotations`` at
+  the top of the file. Patch by Alex Waygood.
+
+- gh-issue-116931: Add parameter *fileobj* check for
+  :func:`tarfile.TarFile.addfile`
+
+- gh-issue-117995: Don't raise :exc:`DeprecationWarning` when a
+  :term:`sequence` of parameters is used to bind indexed, nameless
+  placeholders. See also :gh:`100668`.
+
+- gh-issue-80361: Fix TypeError in :func:`email.Message.get_payload` when
+  the charset is :rfc:`2231` encoded.
+
+- gh-issue-86650: Fix IndexError when parse some emails with invalid
+  Message-ID (including one-off addresses generated by Microsoft Outlook).
+
+- gh-issue-117691: Improve the error messages emitted by :mod:`tarfile`
+  deprecation warnings relating to PEP 706. If a ``filter`` argument is not
+  provided to ``extract()`` or ``extractall``, the deprecation warning now
+  points to the line in the user's code where the relevant function was
+  called. Patch by Alex Waygood.
+
+- gh-issue-115060: Speed up :meth:`pathlib.Path.glob` by omitting an initial
+  :meth:`~pathlib.Path.is_dir` call. As a result of this change,
+  :meth:`~pathlib.Path.glob` can no longer raise :exc:`OSError`.
+
+- gh-issue-77102: :mod:`site` module now parses ``.pth`` file with UTF-8
+  first, and :term:`locale encoding` if ``UnicodeDecodeError`` happened. It
+  supported only locale encoding before.
+
+- gh-issue-76785: We've exposed the low-level :mod:`!_interpreters` module
+  for the sake of the PyPI implementation of :pep:`734`.  It was sometimes
+  available as the :mod:`!_xxsubinterpreters` module and was formerly used
+  only for testing. For the most part, it should be considered an internal
+  module, like :mod:`!_thread` and :mod:`!_imp`. See
+  https://discuss.python.org/t/pep-734-multiple-interpreters-in-the-stdlib/41147/26.
+
+- gh-issue-115060: Speed up :meth:`pathlib.Path.glob` by not scanning
+  directories for non-wildcard pattern segments.
+
+- gh-issue-117727: Speed up :meth:`pathlib.Path.iterdir` by using
+  :func:`os.scandir` internally.
+
+- gh-issue-117586: Speed up :meth:`pathlib.Path.walk` by working with
+  strings internally.
+
+- gh-issue-117722: Change the new multi-separator support in
+  :meth:`asyncio.Stream.readuntil` to only accept tuples of separators
+  rather than arbitrary iterables.
+
+- gh-issue-117692: Fixes a bug when :class:`doctest.DocTestFinder` was
+  failing on wrapped ``builtin_function_or_method``.
+
+- gh-issue-117348: Largely restored import time performance of configparser
+  by avoiding dataclasses.
+
+- gh-issue-117663: Fix ``_simple_enum`` to detect aliases when multiple
+  arguments are present but only one is the member value.
+
+- gh-issue-117618: Support ``package.module`` as ``filename`` for ``break``
+  command of :mod:`pdb`
+
+- gh-issue-102247: the status codes enum with constants in http.HTTPStatus
+  are updated to include the names from RFC9110. This RFC includes some HTTP
+  statuses previously only used for WEBDAV and assigns more generic names to
+  them.
+
+  The old constants are preserved for backwards compatibility.
+
+- gh-issue-117586: Speed up :meth:`pathlib.Path.glob` by working with
+  strings internally.
+
+- gh-issue-117225: Add colour to doctest output. Patch by Hugo van Kemenade.
+
+- gh-issue-117566: :meth:`ipaddress.IPv6Address.is_loopback` will now return
+  ``True`` for IPv4-mapped loopback addresses, i.e. addresses in the
+  ``::ffff:127.0.0.0/104`` address space.
+
+- gh-issue-117546: Fix issue where :func:`os.path.realpath` stopped
+  resolving symlinks after encountering a symlink loop on POSIX.
+
+- gh-issue-116720: Improved behavior of :class:`asyncio.TaskGroup` when an
+  external cancellation collides with an internal cancellation. For example,
+  when two task groups are nested and both experience an exception in a
+  child task simultaneously, it was possible that the outer task group would
+  misbehave, because its internal cancellation was swallowed by the inner
+  task group.
+
+  In the case where a task group is cancelled externally and also must raise
+  an :exc:`ExceptionGroup`, it will now call the parent task's
+  :meth:`~asyncio.Task.cancel` method. This ensures that a
+  :exc:`asyncio.CancelledError` will be raised at the next :keyword:`await`,
+  so the cancellation is not lost.
+
+  An added benefit of these changes is that task groups now preserve the
+  cancellation count (:meth:`asyncio.Task.cancelling`).
+
+  In order to handle some corner cases, :meth:`asyncio.Task.uncancel` may
+  now reset the undocumented ``_must_cancel`` flag when the cancellation
+  count reaches zero.
+
+- gh-issue-117516: Add :data:`typing.TypeIs`, implementing :pep:`742`. Patch
+  by Jelle Zijlstra.
+
+- gh-issue-117503: Fix support of non-ASCII user names in bytes paths in
+  :func:`os.path.expanduser` on Posix.
+
+- gh-issue-117394: :func:`os.path.ismount` is now 2-3 times faster if the
+  user has permissions.
+
+- gh-issue-117313: Only treat ``'\n'``, ``'\r'`` and ``'\r\n'`` as line
+  separators in re-folding the :mod:`email` messages. Preserve control
+  characters ``'\v'``, ``'\f'``, ``'\x1c'``, ``'\x1d'`` and ``'\x1e'`` and
+  Unicode line separators ``'\x85'``, ``'\u2028'`` and ``'\u2029'`` as is.
+
+- gh-issue-117142: Convert :mod:`!_ctypes` to multi-phase initialisation
+  (:pep:`489`).
+
+- gh-issue-66543: Add the :func:`mimetypes.guess_file_type` function which
+  works with file path. Passing file path instead of URL in
+  :func:`~mimetypes.guess_type` is :term:`soft deprecated`.
+
+- gh-issue-68583: webbrowser CLI: replace getopt with argparse, add long
+  options. Patch by Hugo van Kemenade.
+
+- gh-issue-116871: Name suggestions for :exc:`AttributeError` and
+  :exc:`ImportError` now only include underscored names if the original name
+  was underscored.
+
+- gh-issue-116023: Don't show empty fields (value ``None`` or ``[]``) in
+  :func:`ast.dump` by default. Add ``show_empty=False`` parameter to
+  optionally show them.
+
+- gh-issue-115961: Added :attr:`!name` and :attr:`!mode` attributes for
+  compressed and archived file-like objects in modules :mod:`bz2`,
+  :mod:`lzma`, :mod:`tarfile` and :mod:`zipfile`. The value of the
+  :attr:`!mode` attribute of :class:`gzip.GzipFile` was changed from integer
+  (``1`` or ``2``) to string (``'rb'`` or ``'wb'``). The value of the
+  :attr:`!mode` attribute of the readable file-like object returned by
+  :meth:`zipfile.ZipFile.open` was changed from ``'r'`` to ``'rb'``.
+
+- gh-issue-82062: Fix :func:`inspect.signature()` to correctly handle
+  parameter defaults on methods in extension modules that use names defined
+  in the module namespace.
+
+- gh-issue-83856: Honor :mod:`atexit` for all :mod:`multiprocessing` start
+  methods
+
+- gh-issue-113081: Print colorized exception just like built-in traceback in
+  :mod:`pdb`
+
+- gh-issue-112855: Speed up pickling of :class:`pathlib.PurePath` objects.
+  Patch by Barney Gale.
+
+- gh-issue-111744: Support opcode events in :mod:`bdb`
+
+- gh-issue-109617: :mod:`ncurses`: fixed a crash that could occur on macOS
+  13 or earlier when Python was built with Apple Xcode 15's SDK.
+
+- gh-issue-83151: Enabled arbitrary statements and evaluations in :mod:`pdb`
+  shell to access the local variables of the current frame, which made it
+  possible for multi-scope code like generators or nested function to work.
+
+- gh-issue-110209: Add :meth:`~object.__class_getitem__` to
+  :class:`types.GeneratorType` and :class:`types.CoroutineType` for type
+  hinting purposes. Patch by James Hilton-Balfe.
+
+- gh-issue-108191: The :class:`types.SimpleNamespace` now accepts an
+  optional positional argument which specifies initial values of attributes
+  as a dict or an iterable of key-value pairs.
+
+- gh-issue-62090: Fix assertion errors caused by whitespace in metavars or
+  ``SUPPRESS``-ed groups in :mod:`argparse` by simplifying usage formatting.
+  Patch by Ali Hamdan.
+
+- gh-issue-102402: Adjust ``logging.LogRecord`` to use ``time.time_ns()``
+  and fix minor bug related to floating point math.
+
+- gh-issue-100242: Bring pure Python implementation
+  ``functools.partial.__new__`` more in line with the C-implementation by
+  not just always checking for the presence of the attribute ``'func'`` on
+  the first argument of ``partial``. Instead, both the Python version and
+  the C version perform an ``isinstance(func, partial)`` check on the first
+  argument of ``partial``.
+
+- gh-issue-99730: HEAD requests are no longer upgraded to GET request during
+  redirects in urllib.
+
+- gh-issue-66410: Callbacks registered in the :mod:`tkinter` module now take
+  arguments as various Python objects (``int``, ``float``, ``bytes``,
+  ``tuple``), not just ``str``. To restore the previous behavior set
+  :mod:`!tkinter` module global :data:`~tkinter.wantobject` to ``1`` before
+  creating the :class:`~tkinter.Tk` object or call the
+  :meth:`~tkinter.Tk.wantobject` method of the :class:`!Tk` object with
+  argument ``1``. Calling it with argument ``2`` restores the current
+  default behavior.
+
+- bpo-40943: Fix several IndexError when parse emails with truncated
+  Message-ID, address, routes, etc, e.g. ``example@``.
+
+- bpo-39324: Add mime type mapping for .md <-> text/markdown
+
+- bpo-18108: :func:`shutil.chown` now supports *dir_fd* and
+  *follow_symlinks* keyword arguments.
+
+- bpo-30988: Fix parsing of emails with invalid address headers having a
+  leading or trailing dot. Patch by tsufeki.
+
+- bpo-32839: Add the :meth:`!after_info` method for Tkinter widgets.
+
+Documentation
+-------------
+
+- gh-issue-117928: The minimum Sphinx version required for the documentation
+  is now 6.2.1.
+
+Build
+-----
+
+- gh-issue-118734: Fixes Windows build when invoked directly (not through
+  the :file:`build.bat` script) without specifying a value for ``UseTIER2``.
+
+- gh-issue-115119: The :file:`configure` option
+  :option:`--with-system-libmpdec` now defaults to ``yes``. The bundled copy
+  of ``libmpdecimal`` will be removed in Python 3.15.
+
+- gh-issue-117845: Fix building against recent libedit versions by detecting
+  readline hook signatures in :program:`configure`.
+
+- gh-issue-116622: A testbed project was added to run the test suite on
+  Android.
+
+- gh-issue-117645: Increase WASI stack size from 512 KiB to 8 MiB and the
+  initial memory from 10 MiB to 20 MiB. Patch by Victor Stinner.
+
+- gh-issue-115119: :program:`configure` now uses :program:`pkg-config` to
+  detect :mod:`decimal` dependencies if the :option:`--with-system-libmpdec`
+  option is given.
+
+Windows
+-------
+
+- gh-issue-115119: Update Windows installer to use libmpdecimal 4.0.0.
+
+- gh-issue-118486: :func:`os.mkdir` now accepts *mode* of ``0o700`` to
+  restrict the new directory to the current user.
+
+- gh-issue-118347: Fixes launcher updates not being installed.
+
+- gh-issue-118293: The ``multiprocessing`` module now passes the
+  ``STARTF_FORCEOFFFEEDBACK`` flag when spawning processes to tell Windows
+  not to change the mouse cursor.
+
+- gh-issue-115009: Update Windows installer to use SQLite 3.45.3.
+
+- gh-issue-90329: Suppress the warning displayed on virtual environment
+  creation when the requested and created paths differ only by a short (8.3
+  style) name. Warnings will continue to be shown if a junction or symlink
+  in the path caused the venv to be created in a different location than
+  originally requested.
+
+- gh-issue-117786: Fixes virtual environments not correctly launching when
+  created from a Store install.
+
+macOS
+-----
+
+- gh-issue-115119: Update macOS installer to use libmpdecimal 4.0.0.
+
+- gh-issue-114099: iOS preprocessor symbol usage was made compatible with
+  older macOS SDKs.
+
+- gh-issue-115009: Update macOS installer to use SQLite 3.45.3.
+
+- gh-issue-91629: Use :file:`~/.config/fish/conf.d` configs and
+  :program:`fish_add_path` to set :envvar:`PATH` when installing for the
+  Fish shell.
+
+IDLE
+----
+
+- bpo-34774: Use user-selected color theme for Help => IDLE Doc.
+
+C API
+-----
+
+- gh-issue-118124: Fix :c:macro:`Py_BUILD_ASSERT` and
+  :c:macro:`Py_BUILD_ASSERT_EXPR` for non-constant expressions: use
+  ``static_assert()`` on C11 and newer. Patch by Victor Stinner.
+
+- gh-issue-110850: Add "Raw" variant of PyTime functions
+
+  * :c:func:`PyTime_MonotonicRaw`
+  * :c:func:`PyTime_PerfCounterRaw`
+  * :c:func:`PyTime_TimeRaw`
+
+  Patch by Victor Stinner.
+
+- gh-issue-117987: Restore functions removed in Python 3.13 alpha 1:
+
+  * :c:func:`Py_SetPythonHome`
+  * :c:func:`Py_SetProgramName`
+  * :c:func:`PySys_SetArgvEx`
+  * :c:func:`PySys_SetArgv`
+
+  Patch by Victor Stinner.
+
+- gh-issue-117929: Restore removed :c:func:`PyEval_InitThreads` function.
+  Patch by Victor Stinner.
+
+- gh-issue-117534: Improve validation logic in the C implementation of
+  :meth:`datetime.datetime.fromisoformat` to better handle invalid years.
+  Patch by Vlad Efanov.
+
+- gh-issue-68114: Fixed skipitem()'s handling of the old 'w' and 'w#'
+  formatters.  These are no longer supported and now raise an exception if
+  used.
+
+- gh-issue-111997: Add a C-API for firing monitoring events.
+
+
 What's New in Python 3.13.0 alpha 6?
 ====================================
 
@@ -10,7 +672,8 @@ What's New in Python 3.13.0 alpha 6?
 Core and Builtins
 -----------------
 
-- gh-issue-117648: Speedup :func:`os.path.join` by up to 6% on Windows.
+- gh-issue-117648: Improve performance of :func:`os.path.join` and
+  :func:`os.path.expanduser`.
 
 - gh-issue-117584: Raise :exc:`TypeError` for non-paths in
   :func:`posixpath.relpath()`.
@@ -514,7 +1177,7 @@ Security
 --------
 
 - gh-issue-115398: Allow controlling Expat >=2.6.0 reparse deferral
-  (CVE-2023-52425) by adding five new methods:
+  (:cve:`2023-52425`) by adding five new methods:
 
   * :meth:`xml.etree.ElementTree.XMLParser.flush`
   * :meth:`xml.etree.ElementTree.XMLPullParser.flush`
@@ -836,7 +1499,7 @@ Library
 Documentation
 -------------
 
-- gh-issue-115399: Document CVE-2023-52425 of Expat <2.6.0 under "XML
+- gh-issue-115399: Document :cve:`2023-52425` of Expat <2.6.0 under "XML
   vulnerabilities".
 
 - gh-issue-109653: Improve import time of :mod:`uuid` on Linux.
@@ -2098,7 +2761,7 @@ Library
   two functions: use ``strict=False`` to get the old behavior, accept
   malformed inputs. ``getattr(email.utils, 'supports_strict_parsing',
   False)`` can be use to check if the *strict* paramater is available. Patch
-  by Thomas Dwyer and Victor Stinner to improve the CVE-2023-27043 fix.
+  by Thomas Dwyer and Victor Stinner to improve the :cve:`2023-27043` fix.
 
 - gh-issue-52161: :meth:`cmd.Cmd.do_help` now cleans docstrings with
   :func:`inspect.cleandoc` before writing them. Patch by Filip Łapkiewicz.
@@ -3079,9 +3742,7 @@ Security
   were vulnerable to a bypass of the TLS handshake and included protections
   (like certificate verification) and treating sent unencrypted data as if
   it were post-handshake TLS encrypted data.  Security issue reported as
-  `CVE-2023-40217
-  <https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2023-40217>`_ by Aapo
-  Oksman. Patch by Gregory P. Smith.
+  :cve:`2023-40217` by Aapo Oksman. Patch by Gregory P. Smith.
 
 - gh-issue-107774: PEP 669 specifies that
   ``sys.monitoring.register_callback`` will generate an audit event.
@@ -4594,8 +5255,7 @@ Library
   deprecated in Python 3.11.
 
 - gh-issue-104773: :pep:`594`: Remove the :mod:`!spwd` module, deprecated in
-  Python 3.11: the `python-pam project
-  <https://pypi.org/project/python-pam/>`_ can be used instead. Patch by
+  Python 3.11: the :pypi:`python-pam` project can be used instead. Patch by
   Victor Stinner.
 
 - gh-issue-75552: Removed the ``tkinter.tix`` module, deprecated since
@@ -5635,7 +6295,7 @@ Security
 
 - gh-issue-102153: :func:`urllib.parse.urlsplit` now strips leading C0
   control and space characters following the specification for URLs defined
-  by WHATWG in response to CVE-2023-24329. Patch by Illia Volochii.
+  by WHATWG in response to :cve:`2023-24329`. Patch by Illia Volochii.
 
 Core and Builtins
 -----------------
@@ -6841,9 +7501,9 @@ Security
   with verified ones from the HACL* project.
 
 - gh-issue-101727: Updated the OpenSSL version used in Windows and macOS
-  binary release builds to 1.1.1t to address CVE-2023-0286, CVE-2022-4303,
-  and CVE-2022-4303 per `the OpenSSL 2023-02-07 security advisory
-  <https://www.openssl.org/news/secadv/20230207.txt>`_.
+  binary release builds to 1.1.1t to address :cve:`2023-0286`,
+  :cve:`2022-4303`, and :cve:`2022-4303` per `the OpenSSL 2023-02-07
+  security advisory <https://www.openssl.org/news/secadv/20230207.txt>`_.
 
 - gh-issue-99108: Replace the builtin :mod:`hashlib` implementations of
   SHA2-384 and SHA2-512 originally from LibTomCrypt with formally verified,
@@ -8581,8 +9241,8 @@ Windows
 -------
 
 - gh-issue-98689: Update Windows builds to zlib v1.2.13.  v1.2.12 has
-  CVE-2022-37434, but the vulnerable ``inflateGetHeader`` API is not used by
-  Python.
+  :cve:`2022-37434`, but the vulnerable ``inflateGetHeader`` API is not used
+  by Python.
 
 - gh-issue-98790: Assumes that a missing ``DLLs`` directory means that
   standard extension modules are in the executable's directory.
@@ -8666,8 +9326,7 @@ Security
   socket permissions restrict this to the *forkserver* process user as was
   the default in Python 3.8 and earlier.
 
-  This prevents Linux `CVE-2022-42919
-  <https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2022-42919>`_.
+  This prevents Linux :cve:`2022-42919`.
 
 - gh-issue-87389: :mod:`http.server`: Fix an open redirection vulnerability
   in the HTTP server when an URI path starts with ``//``.  Vulnerability
@@ -9807,8 +10466,7 @@ Library
   :class:`ssl.SSLContext.wrap_socket` method. Any package that still uses
   :func:`ssl.wrap_socket` is broken and insecure. The function neither sends
   a SNI TLS extension nor validates server hostname. Code is subject to
-  `CWE-295 <https://cwe.mitre.org/data/definitions/295.html>`_: Improper
-  Certificate Validation. Patch by Victor Stinner.
+  :cwe:`295` Improper Certificate Validation. Patch by Victor Stinner.
 
 - gh-issue-94199: Remove the :func:`ssl.RAND_pseudo_bytes` function,
   deprecated in Python 3.6: use :func:`os.urandom` or :func:`ssl.RAND_bytes`
@@ -10251,8 +10909,7 @@ Documentation
 - gh-issue-85525: Remove extra row
 
 - gh-issue-86404: Deprecated tools ``make suspicious`` and ``rstlint.py``
-  are now removed. They have been replaced by `spinx-lint
-  <https://pypi.org/project/sphinx-lint/>`_.
+  are now removed. They have been replaced by :pypi:`sphinx-lint`.
 
 - gh-issue-97741: Fix ``!`` in c domain ref target syntax via a ``conf.py``
   patch, so it works as intended to disable ref target resolution.
@@ -12194,7 +12851,7 @@ Build
 Windows
 -------
 
-- bpo-47194: Update ``zlib`` to v1.2.12 to resolve CVE-2018-25032.
+- bpo-47194: Update ``zlib`` to v1.2.12 to resolve :cve:`2018-25032`.
 
 - bpo-47171: Enables installing the :file:`py.exe` launcher on Windows
   ARM64.
@@ -12212,9 +12869,9 @@ Windows
 - bpo-46907: Update Windows installer to use SQLite 3.38.1.
 
 - bpo-44549: Update bzip2 to 1.0.8 in Windows builds to mitigate
-  CVE-2016-3189 and CVE-2019-12900
+  :cve:`2016-3189` and :cve:`2019-12900`.
 
-- bpo-46948: Prevent CVE-2022-26488 by ensuring the Add to PATH option in
+- bpo-46948: Prevent :cve:`2022-26488` by ensuring the Add to PATH option in
   the Windows installer uses the correct path when being repaired.
 
 macOS
@@ -13115,7 +13772,7 @@ Core and Builtins
 - bpo-46070: :c:func:`Py_EndInterpreter` now explicitly untracks all objects
   currently tracked by the GC. Previously, if an object was used later by
   another interpreter, calling :c:func:`PyObject_GC_UnTrack` on the object
-  crashed if the previous or the next object of the :c:type:`PyGC_Head`
+  crashed if the previous or the next object of the :c:type:`!PyGC_Head`
   structure became a dangling pointer. Patch by Victor Stinner.
 
 - bpo-46347: Fix memory leak in PyEval_EvalCodeEx.
@@ -14568,7 +15225,7 @@ Security
   files.
 
 - bpo-44394: Update the vendored copy of libexpat to 2.4.1 (from 2.2.8) to
-  get the fix for the CVE-2013-0340 "Billion Laughs" vulnerability. This
+  get the fix for the :cve:`2013-0340` "Billion Laughs" vulnerability. This
   copy is most used on Windows and macOS.
 
 - bpo-43124: Made the internal ``putcmd`` function in :mod:`smtplib`
@@ -17163,7 +17820,7 @@ What's New in Python 3.10.0 alpha 7?
 Security
 --------
 
-- bpo-42988: CVE-2021-3426: Remove the ``getfile`` feature of the
+- bpo-42988: :cve:`2021-3426`: Remove the ``getfile`` feature of the
   :mod:`pydoc` module which could be abused to read arbitrary files on the
   disk (directory traversal vulnerability). Moreover, even source code of
   Python modules can contain sensitive data like passwords. Vulnerability
@@ -19371,13 +20028,13 @@ Security
 --------
 
 - bpo-41304: Fixes ``python3x._pth`` being ignored on Windows, caused by the
-  fix for :issue:`29778` (CVE-2020-15801).
+  fix for :issue:`29778` (:cve:`2020-15801`).
 
 - bpo-41162: Audit hooks are now cleared later during finalization to avoid
   missing events.
 
 - bpo-29778: Ensure :file:`python3.dll` is loaded from correct locations
-  when Python is embedded (CVE-2020-15523).
+  when Python is embedded (:cve:`2020-15523`).
 
 - bpo-41004: The __hash__() methods of  ipaddress.IPv4Interface and
   ipaddress.IPv6Interface incorrectly generated constant hash values of 32
@@ -19899,7 +20556,7 @@ Library
   raises now UnpicklingError instead of crashing.
 
 - bpo-39017: Avoid infinite loop when reading specially crafted TAR files
-  using the tarfile module (CVE-2019-20907).
+  using the tarfile module (:cve:`2019-20907`).
 
 - bpo-41273: Speed up any transport using ``_ProactorReadPipeTransport`` by
   calling ``recv_into`` instead of ``recv``, thus not creating a new buffer
@@ -19981,8 +20638,8 @@ Library
   installing the bundled versions of ``pip`` and ``setuptools``.  Patch by
   Krzysztof Konopko.
 
-- bpo-40967: Removed :meth:`asyncio.Task.current_task` and
-  :meth:`asyncio.Task.all_tasks`. Patch contributed by Rémi Lapeyre.
+- bpo-40967: Removed :meth:`!asyncio.Task.current_task` and
+  :meth:`!asyncio.Task.all_tasks`. Patch contributed by Rémi Lapeyre.
 
 - bpo-40924: Ensure ``importlib.resources.path`` returns an extant path for
   the SourceFileLoader's resource reader. Avoids the regression identified
@@ -20897,7 +21554,7 @@ Security
 - bpo-39073: Disallow CR or LF in email.headerregistry.Address arguments to
   guard against header injection attacks.
 
-- bpo-39503: CVE-2020-8492: The
+- bpo-39503: :cve:`2020-8492`: The
   :class:`~urllib.request.AbstractBasicAuthHandler` class of the
   :mod:`urllib.request` module uses an inefficient regular expression which
   can be exploited by an attacker to cause a denial of service. Fix the
@@ -21090,7 +21747,7 @@ Library
 
 - bpo-40149: Implement traverse and clear slots in _abc._abc_data type.
 
-- bpo-40208: Remove deprecated :meth:`symtable.SymbolTable.has_exec`.
+- bpo-40208: Remove deprecated :meth:`!symtable.SymbolTable.has_exec`.
 
 - bpo-40196: Fix a bug in the :mod:`symtable` module that was causing
   incorrectly report global variables as local. Patch by Pablo Galindo.
@@ -21299,7 +21956,7 @@ Tools/Demos
 C API
 -----
 
-- bpo-40241: Move the :c:type:`PyGC_Head` structure to the internal C API.
+- bpo-40241: Move the :c:type:`!PyGC_Head` structure to the internal C API.
 
 - bpo-40170: Convert :c:func:`PyObject_IS_GC` macro to a function to hide
   implementation details.
@@ -21309,8 +21966,8 @@ C API
   Python objects are being currently tracked or have been already finalized
   by the garbage collector respectively. Patch by Pablo Galindo.
 
-- bpo-40170: The :c:func:`PyObject_NEW` macro becomes an alias to the
-  :c:func:`PyObject_New` macro, and the :c:func:`PyObject_NEW_VAR` macro
+- bpo-40170: The :c:func:`!PyObject_NEW` macro becomes an alias to the
+  :c:func:`PyObject_New` macro, and the :c:func:`!PyObject_NEW_VAR` macro
   becomes an alias to the :c:func:`PyObject_NewVar` macro, to hide
   implementation details. They no longer access directly the
   :c:member:`PyTypeObject.tp_basicsize` member.
@@ -21320,7 +21977,7 @@ C API
   accessed directly the :c:member:`PyTypeObject.tp_flags` member when the
   limited C API was not used.
 
-- bpo-40170: Convert the :c:func:`PyObject_GET_WEAKREFS_LISTPTR` macro to a
+- bpo-40170: Convert the :c:func:`!PyObject_GET_WEAKREFS_LISTPTR` macro to a
   function to hide implementation details: the macro accessed directly to
   the :c:member:`PyTypeObject.tp_weaklistoffset` member.
 
@@ -21345,7 +22002,7 @@ Security
 --------
 
 - bpo-38576: Disallow control characters in hostnames in http.client,
-  addressing CVE-2019-18348. Such potentially malicious header injection
+  addressing :cve:`2019-18348`. Such potentially malicious header injection
   URLs now cause a InvalidURL to be raised.
 
 Core and Builtins
@@ -22878,7 +23535,7 @@ Tests
 Build
 -----
 
-- bpo-37404: :mod:`asyncio` now raises :exc:`TyperError` when calling
+- bpo-37404: :mod:`asyncio` now raises :exc:`TypeError` when calling
   incompatible methods with an :class:`ssl.SSLSocket` socket.  Patch by Ido
   Michael.
 
@@ -22950,7 +23607,7 @@ Security
   HTML. (Contributed by Donghee Na in :issue:`38243`.)
 
 - bpo-38174: Update vendorized expat library version to 2.2.8, which
-  resolves CVE-2019-15903.
+  resolves :cve:`2019-15903`.
 
 - bpo-37764: Fixes email._header_value_parser.get_unstructured going into an
   infinite loop for a specific case in which the email header does not have
@@ -24825,7 +25482,7 @@ C API
 - bpo-37879: Fix subtype_dealloc to suppress the type decref when the base
   type is a C heap type
 
-- bpo-37645: Add :c:func:`_PyObject_FunctionStr` to get a user-friendly
+- bpo-37645: Add :c:func:`!_PyObject_FunctionStr` to get a user-friendly
   string representation of a function-like object. Patch by Jeroen Demeyer.
 
 - bpo-29548: The functions ``PyEval_CallObject``, ``PyEval_CallFunction``,
@@ -24888,7 +25545,7 @@ What's New in Python 3.8.0 beta 1?
 Security
 --------
 
-- bpo-35907: CVE-2019-9948: Avoid file reading by disallowing
+- bpo-35907: :cve:`2019-9948`: Avoid file reading by disallowing
   ``local-file://`` and ``local_file://`` URL schemes in
   ``URLopener().open()`` and ``URLopener().retrieve()`` of
   :mod:`urllib.request`.
@@ -25649,7 +26306,7 @@ Security
 - bpo-36742: Fixes mishandling of pre-normalization characters in
   urlsplit().
 
-- bpo-30458: Address CVE-2019-9740 by disallowing URL paths with embedded
+- bpo-30458: Address :cve:`2019-9740` by disallowing URL paths with embedded
   whitespace or control characters through into the underlying http client
   request.  Such potentially malicious header injection URLs now cause an
   http.client.InvalidURL exception to be raised.
@@ -26721,7 +27378,7 @@ What's New in Python 3.8.0 alpha 1?
 Security
 --------
 
-- bpo-35746: [CVE-2019-5010] Fix a NULL pointer deref in ssl module. The
+- bpo-35746: :cve:`2019-5010`: Fix a NULL pointer deref in ssl module. The
   cert parser did not handle CRL distribution points with empty DP or URI
   correctly. A malicious or buggy certificate can result into segfault.
   Vulnerability (TALOS-2018-0758) reported by Colin Read and Nicolas Edet of
@@ -26740,7 +27397,7 @@ Security
   external entities by default. External DTD and ENTITY declarations no
   longer load files or create network connections.
 
-- bpo-34623: CVE-2018-14647: The C accelerated _elementtree module now
+- bpo-34623: :cve:`2018-14647`: The C accelerated _elementtree module now
   initializes hash randomization salt from _Py_HashSecret instead of
   libexpat's default CSPRNG.
 
@@ -26752,7 +27409,7 @@ Security
 
 - bpo-32533: Fixed thread-safety of error handling in _ssl.
 
-- bpo-33136: Harden ssl module against LibreSSL CVE-2018-8970.
+- bpo-33136: Harden ssl module against LibreSSL :cve:`2018-8970`.
   X509_VERIFY_PARAM_set1_host() is called with an explicit namelen. A new
   test ensures that NULL bytes are not allowed.
 
@@ -26760,8 +27417,8 @@ Security
 
 - bpo-32981: Regexes in difflib and poplib were vulnerable to catastrophic
   backtracking. These regexes formed potential DOS vectors (REDOS). They
-  have been refactored. This resolves CVE-2018-1060 and CVE-2018-1061. Patch
-  by Jamie Davis.
+  have been refactored. This resolves :cve:`2018-1060` and :cve:`2018-1061`.
+  Patch by Jamie Davis.
 
 - bpo-28414: The ssl module now allows users to perform their own IDN
   en/decoding when using SNI.
@@ -30251,7 +30908,7 @@ What's New in Python 3.7.0 beta 3?
 Security
 --------
 
-- bpo-33136: Harden ssl module against LibreSSL CVE-2018-8970.
+- bpo-33136: Harden ssl module against LibreSSL :cve:`2018-8970`.
   X509_VERIFY_PARAM_set1_host() is called with an explicit namelen. A new
   test ensures that NULL bytes are not allowed.
 
@@ -30259,8 +30916,8 @@ Security
 
 - bpo-32981: Regexes in difflib and poplib were vulnerable to catastrophic
   backtracking. These regexes formed potential DOS vectors (REDOS). They
-  have been refactored. This resolves CVE-2018-1060 and CVE-2018-1061. Patch
-  by Jamie Davis.
+  have been refactored. This resolves :cve:`2018-1060` and :cve:`2018-1061`.
+  Patch by Jamie Davis.
 
 Core and Builtins
 -----------------
@@ -32211,13 +32868,13 @@ Security
   arguments.
 
 - bpo-30694: Upgrade expat copy from 2.2.0 to 2.2.1 to get fixes of multiple
-  security vulnerabilities including: CVE-2017-9233 (External entity
-  infinite loop DoS), CVE-2016-9063 (Integer overflow, re-fix),
-  CVE-2016-0718 (Fix regression bugs from 2.2.0's fix to CVE-2016-0718) and
-  CVE-2012-0876 (Counter hash flooding with SipHash). Note: the
-  CVE-2016-5300 (Use os-specific entropy sources like getrandom) doesn't
-  impact Python, since Python already gets entropy from the OS to set the
-  expat secret using ``XML_SetHashSalt()``.
+  security vulnerabilities including: :cve:`2017-9233` (External entity
+  infinite loop DoS), :cve:`2016-9063` (Integer overflow, re-fix),
+  :cve:`2016-0718` (Fix regression bugs from 2.2.0's fix to
+  :cve:`2016-0718`) and :cve:`2012-0876` (Counter hash flooding with
+  SipHash). Note: the :cve:`2016-5300` (Use os-specific entropy sources like
+  getrandom) doesn't impact Python, since Python already gets entropy from
+  the OS to set the expat secret using ``XML_SetHashSalt()``.
 
 - bpo-30500: Fix urllib.parse.splithost() to correctly parse fragments. For
   example, ``splithost('//127.0.0.1#@evil.com/')`` now correctly returns the
@@ -32225,7 +32882,7 @@ Security
   authentication (``login@host``).
 
 - bpo-29591: Update expat copy from 2.1.1 to 2.2.0 to get fixes of
-  CVE-2016-0718 and CVE-2016-4472. See
+  :cve:`2016-0718` and :cve:`2016-4472`. See
   https://sourceforge.net/p/expat/bugs/537/ for more information.
 
 Core and Builtins
@@ -34654,8 +35311,8 @@ Security
 
 - bpo-32981: Regexes in difflib and poplib were vulnerable to catastrophic
   backtracking. These regexes formed potential DOS vectors (REDOS). They
-  have been refactored. This resolves CVE-2018-1060 and CVE-2018-1061. Patch
-  by Jamie Davis.
+  have been refactored. This resolves :cve:`2018-1060` and :cve:`2018-1061`.
+  Patch by Jamie Davis.
 
 Core and Builtins
 -----------------
@@ -35886,13 +36543,13 @@ Security
   arguments.
 
 - bpo-30694: Upgrade expat copy from 2.2.0 to 2.2.1 to get fixes of multiple
-  security vulnerabilities including: CVE-2017-9233 (External entity
-  infinite loop DoS), CVE-2016-9063 (Integer overflow, re-fix),
-  CVE-2016-0718 (Fix regression bugs from 2.2.0's fix to CVE-2016-0718) and
-  CVE-2012-0876 (Counter hash flooding with SipHash). Note: the
-  CVE-2016-5300 (Use os-specific entropy sources like getrandom) doesn't
-  impact Python, since Python already gets entropy from the OS to set the
-  expat secret using ``XML_SetHashSalt()``.
+  security vulnerabilities including: :cve:`2017-9233` (External entity
+  infinite loop DoS), :cve:`2016-9063` (Integer overflow, re-fix),
+  :cve:`2016-0718` (Fix regression bugs from 2.2.0's fix to
+  :cve:`2016-0718`) and :cve:`2012-0876` (Counter hash flooding with
+  SipHash). Note: the :cve:`2016-5300` (Use os-specific entropy sources like
+  getrandom) doesn't impact Python, since Python already gets entropy from
+  the OS to set the expat secret using ``XML_SetHashSalt()``.
 
 - bpo-30500: Fix urllib.parse.splithost() to correctly parse fragments. For
   example, ``splithost('//127.0.0.1#@evil.com/')`` now correctly returns the
@@ -35909,7 +36566,7 @@ Security
 --------
 
 - bpo-29591: Update expat copy from 2.1.1 to 2.2.0 to get fixes of
-  CVE-2016-0718 and CVE-2016-4472. See
+  :cve:`2016-0718` and :cve:`2016-4472`. See
   https://sourceforge.net/p/expat/bugs/537/ for more information.
 
 Core and Builtins
@@ -37497,7 +38154,7 @@ Library
   module (requires OpenSSL 1.1.0).
 
 - bpo-27850: Remove 3DES from ssl module's default cipher list to counter
-  measure sweet32 attack (CVE-2016-2183).
+  measure sweet32 attack (:cve:`2016-2183`).
 
 - bpo-27766: Add ChaCha20 Poly1305 to ssl module's default cipher list.
   (Required OpenSSL 1.1.0 or LibreSSL).
@@ -37831,7 +38488,7 @@ Library
 - bpo-27758: Fix possible integer overflow in the _csv module for large
   record lengths.
 
-- bpo-27568: Prevent HTTPoxy attack (CVE-2016-1000110). Ignore the
+- bpo-27568: Prevent HTTPoxy attack (:cve:`2016-1000110`). Ignore the
   HTTP_PROXY variable when REQUEST_METHOD environment is set, which
   indicates that the script is in CGI mode.
 
@@ -38163,9 +38820,9 @@ What's New in Python 3.6.0 alpha 2?
 Security
 --------
 
-- bpo-26556: Update expat to 2.1.1, fixes CVE-2015-1283.
+- bpo-26556: Update expat to 2.1.1, fixes :cve:`2015-1283`.
 
-- Fix TLS stripping vulnerability in smtplib, CVE-2016-0772. Reported by
+- Fix TLS stripping vulnerability in smtplib, :cve:`2016-0772`. Reported by
   Team Oststrom.
 
 - bpo-26839: On Linux, :func:`os.urandom` now calls ``getrandom()`` with
@@ -39764,8 +40421,8 @@ Security
   3.5.4 release would also be affected)
 
 - bpo-30657: Fixed possible integer overflow in PyBytes_DecodeEscape,
-  CVE-2017-1000158. Original patch by Jay Bosamiya; rebased to Python 3 by
-  Miro Hrončok.
+  :cve:`2017-1000158`. Original patch by Jay Bosamiya; rebased to Python 3
+  by Miro Hrončok.
 
 - bpo-30947: Upgrade libexpat embedded copy from version 2.2.1 to 2.2.3 to
   get security fixes.
@@ -39814,13 +40471,13 @@ Security
   arguments.
 
 - bpo-30694: Upgrade expat copy from 2.2.0 to 2.2.1 to get fixes of multiple
-  security vulnerabilities including: CVE-2017-9233 (External entity
-  infinite loop DoS), CVE-2016-9063 (Integer overflow, re-fix),
-  CVE-2016-0718 (Fix regression bugs from 2.2.0's fix to CVE-2016-0718) and
-  CVE-2012-0876 (Counter hash flooding with SipHash). Note: the
-  CVE-2016-5300 (Use os-specific entropy sources like getrandom) doesn't
-  impact Python, since Python already gets entropy from the OS to set the
-  expat secret using ``XML_SetHashSalt()``.
+  security vulnerabilities including: :cve:`2017-9233` (External entity
+  infinite loop DoS), :cve:`2016-9063` (Integer overflow, re-fix),
+  :cve:`2016-0718` (Fix regression bugs from 2.2.0's fix to
+  :cve:`2016-0718`) and :cve:`2012-0876` (Counter hash flooding with
+  SipHash). Note: the :cve:`2016-5300` (Use os-specific entropy sources like
+  getrandom) doesn't impact Python, since Python already gets entropy from
+  the OS to set the expat secret using ``XML_SetHashSalt()``.
 
 - bpo-30500: Fix urllib.parse.splithost() to correctly parse fragments. For
   example, ``splithost('//127.0.0.1#@evil.com/')`` now correctly returns the
@@ -39828,7 +40485,7 @@ Security
   authentication (``login@host``).
 
 - bpo-29591: Update expat copy from 2.1.1 to 2.2.0 to get fixes of
-  CVE-2016-0718 and CVE-2016-4472. See
+  :cve:`2016-0718` and :cve:`2016-4472`. See
   https://sourceforge.net/p/expat/bugs/537/ for more information.
 
 Core and Builtins
@@ -40551,7 +41208,7 @@ Library
   fields in X.509 certs.
 
 - bpo-27850: Remove 3DES from ssl module's default cipher list to counter
-  measure sweet32 attack (CVE-2016-2183).
+  measure sweet32 attack (:cve:`2016-2183`).
 
 - bpo-27766: Add ChaCha20 Poly1305 to ssl module's default cipher list.
   (Required OpenSSL 1.1.0 or LibreSSL).
@@ -40611,7 +41268,7 @@ Library
 - bpo-27758: Fix possible integer overflow in the _csv module for large
   record lengths.
 
-- bpo-27568: Prevent HTTPoxy attack (CVE-2016-1000110). Ignore the
+- bpo-27568: Prevent HTTPoxy attack (:cve:`2016-1000110`). Ignore the
   HTTP_PROXY variable when REQUEST_METHOD environment is set, which
   indicates that the script is in CGI mode.
 
@@ -40929,10 +41586,10 @@ What's New in Python 3.5.2 release candidate 1?
 Security
 --------
 
-- bpo-26556: Update expat to 2.1.1, fixes CVE-2015-1283.
+- bpo-26556: Update expat to 2.1.1, fixes :cve:`2015-1283`.
 
-- Fix TLS stripping vulnerability in smtplib, CVE-2016-0772. Reported by
-  Team Oststrom
+- Fix TLS stripping vulnerability in smtplib, :cve:`2016-0772`. Reported by
+  Team Oststrom.
 
 - bpo-26839: On Linux, :func:`os.urandom` now calls ``getrandom()`` with
   ``GRND_NONBLOCK`` to fall back on reading ``/dev/urandom`` if the urandom
@@ -43821,7 +44478,7 @@ Library
   interpreter shutdown.
 
 - bpo-16043: Add a default limit for the amount of data
-  xmlrpclib.gzip_decode will return. This resolves CVE-2013-1753.
+  xmlrpclib.gzip_decode will return. This resolves :cve:`2013-1753`.
 
 - bpo-14099: ZipFile.open() no longer reopen the underlying file.  Objects
   returned by ZipFile.open() can now operate independently of the ZipFile
@@ -44664,7 +45321,7 @@ Library
 
 - bpo-21529: Fix arbitrary memory access in JSONDecoder.raw_decode with a
   negative second parameter. Bug reported by Guido Vranken. (See also:
-  CVE-2014-4616)
+  :cve:`2014-4616`)
 
 - bpo-21169: getpass now handles non-ascii characters that the input stream
   encoding cannot encode by re-encoding using the replace error handler.
