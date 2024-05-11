@@ -1,3 +1,9 @@
+python3.13 (3.13.0~b1-1+jammy1) jammy; urgency=medium
+
+  * Python 3.13.0 beta 1 release.
+
+ -- Anthony Sottile <asottile@umich.edu>  Sat, 11 May 2024 19:05:36 +0000
+
 python3.13 (3.13.0~a6-1+jammy2) jammy; urgency=medium
 
   * cherry-pick 9c93b7402ba.
