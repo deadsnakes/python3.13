@@ -225,15 +225,13 @@ class PurePathBase:
         string, remove the suffix from the path.
         """
         stem = self.stem
-        if not suffix:
-            return self.with_name(stem)
-        elif not stem:
+        if not stem:
             # If the stem is empty, we can't make the suffix non-empty.
             raise ValueError(f"{self!r} has an empty name")
-        elif suffix.startswith('.') and len(suffix) > 1:
-            return self.with_name(stem + suffix)
-        else:
+        elif suffix and not (suffix.startswith('.') and len(suffix) > 1):
             raise ValueError(f"Invalid suffix {suffix!r}")
+        else:
+            return self.with_name(stem + suffix)
 
     def relative_to(self, other, *, walk_up=False):
         """Return the relative path to another path identified by the passed
@@ -698,7 +696,37 @@ class PathBase(PurePathBase):
 
     def walk(self, top_down=True, on_error=None, follow_symlinks=False):
         """Walk the directory tree from this directory, similar to os.walk()."""
-        return self._globber.walk(self, top_down, on_error, follow_symlinks)
+        paths = [self]
+        while paths:
+            path = paths.pop()
+            if isinstance(path, tuple):
+                yield path
+                continue
+            dirnames = []
+            filenames = []
+            if not top_down:
+                paths.append((path, dirnames, filenames))
+            try:
+                for child in path.iterdir():
+                    try:
+                        if child.is_dir(follow_symlinks=follow_symlinks):
+                            if not top_down:
+                                paths.append(child)
+                            dirnames.append(child.name)
+                        else:
+                            filenames.append(child.name)
+                    except OSError:
+                        filenames.append(child.name)
+            except OSError as error:
+                if on_error is not None:
+                    on_error(error)
+                if not top_down:
+                    while not isinstance(paths.pop(), tuple):
+                        pass
+                continue
+            if top_down:
+                yield path, dirnames, filenames
+                paths += [path.joinpath(d) for d in reversed(dirnames)]
 
     def absolute(self):
         """Return an absolute version of this path

@@ -638,6 +638,23 @@ framelocalsproxy_setdefault(PyObject* self, PyObject *const *args, Py_ssize_t na
 }
 
 static PyObject*
+framelocalsproxy_copy(PyObject *self, PyObject *Py_UNUSED(ignored))
+{
+    PyObject* result = PyDict_New();
+
+    if (result == NULL) {
+        return NULL;
+    }
+
+    if (PyDict_Update(result, self) < 0) {
+        Py_DECREF(result);
+        return NULL;
+    }
+
+    return result;
+}
+
+static PyObject*
 framelocalsproxy_reversed(PyObject *self, void *Py_UNUSED(ignored))
 {
     PyObject *result = framelocalsproxy_keys(self, NULL);
@@ -676,6 +693,8 @@ static PyMethodDef framelocalsproxy_methods[] = {
     {"update",        framelocalsproxy_update,            METH_O,
      NULL},
     {"__reversed__", _PyCFunction_CAST(framelocalsproxy_reversed),       METH_NOARGS,
+     NULL},
+    {"copy",         _PyCFunction_CAST(framelocalsproxy_copy),           METH_NOARGS,
      NULL},
     {"keys",         _PyCFunction_CAST(framelocalsproxy_keys),           METH_NOARGS,
      NULL},
@@ -1900,8 +1919,7 @@ frame_get_var(_PyInterpreterFrame *frame, PyCodeObject *co, int i,
                 }
                 // (likely) Otherwise it is an arg (kind & CO_FAST_LOCAL),
                 // with the initial value set when the frame was created...
-                // (unlikely) ...or it was set to some initial value by
-                // an earlier call to PyFrame_LocalsToFast().
+                // (unlikely) ...or it was set via the f_locals proxy.
             }
         }
     }
@@ -2014,18 +2032,24 @@ PyFrame_GetVarString(PyFrameObject *frame, const char *name)
 int
 PyFrame_FastToLocalsWithError(PyFrameObject *f)
 {
+    // Nothing to do here, as f_locals is now a write-through proxy in
+    // optimized frames. Soft-deprecated, since there's no maintenance hassle.
     return 0;
 }
 
 void
 PyFrame_FastToLocals(PyFrameObject *f)
 {
+    // Nothing to do here, as f_locals is now a write-through proxy in
+    // optimized frames. Soft-deprecated, since there's no maintenance hassle.
     return;
 }
 
 void
 PyFrame_LocalsToFast(PyFrameObject *f, int clear)
 {
+    // Nothing to do here, as f_locals is now a write-through proxy in
+    // optimized frames. Soft-deprecated, since there's no maintenance hassle.
     return;
 }
 

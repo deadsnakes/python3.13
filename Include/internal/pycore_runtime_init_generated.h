@@ -826,6 +826,7 @@ extern "C" {
     INIT_ID(c_call), \
     INIT_ID(c_exception), \
     INIT_ID(c_return), \
+    INIT_ID(cached_datetime_module), \
     INIT_ID(cached_statements), \
     INIT_ID(cadata), \
     INIT_ID(cafile), \
@@ -1219,6 +1220,7 @@ extern "C" {
     INIT_ID(sort), \
     INIT_ID(source), \
     INIT_ID(source_traceback), \
+    INIT_ID(spam), \
     INIT_ID(src), \
     INIT_ID(src_dir_fd), \
     INIT_ID(stacklevel), \
