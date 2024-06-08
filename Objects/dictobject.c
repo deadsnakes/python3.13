@@ -2003,7 +2003,7 @@ dictresize(PyInterpreterState *interp, PyDictObject *mp,
         if (oldvalues->embedded) {
             assert(oldvalues->embedded == 1);
             assert(oldvalues->valid == 1);
-            oldvalues->valid = 0;
+            FT_ATOMIC_STORE_UINT8(oldvalues->valid, 0);
         }
         else {
             free_values(oldvalues, IS_DICT_SHARED(mp));
@@ -5396,6 +5396,7 @@ static int
 dictiter_iternext_threadsafe(PyDictObject *d, PyObject *self,
                              PyObject **out_key, PyObject **out_value)
 {
+    int res;
     dictiterobject *di = (dictiterobject *)self;
     Py_ssize_t i;
     PyDictKeysObject *k;
@@ -5491,7 +5492,6 @@ fail:
     Py_DECREF(d);
     return -1;
 
-    int res;
 try_locked:
     Py_BEGIN_CRITICAL_SECTION(d);
     res = dictiter_iternextitem_lock_held(d, self, out_key, out_value);
