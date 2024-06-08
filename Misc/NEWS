@@ -2,6 +2,312 @@
 Python News
 +++++++++++
 
+What's New in Python 3.13.0 beta 2?
+===================================
+
+*Release date: 2024-06-05*
+
+Security
+--------
+
+- gh-issue-118773: Fixes creation of ACLs in :func:`os.mkdir` on Windows to
+  work correctly on non-English machines.
+
+- gh-issue-118486: :func:`os.mkdir` on Windows now accepts *mode* of
+  ``0o700`` to restrict the new directory to the current user. This fixes
+  :cve:`2024-4030` affecting :func:`tempfile.mkdtemp` in scenarios where the
+  base temporary directory is more permissive than the default.
+
+Core and Builtins
+-----------------
+
+- gh-issue-119724: Reverted improvements to error messages for
+  ``elif``/``else`` statements not matching any valid statements, which made
+  in hard to locate the syntax errors inside those ``elif``/``else`` blocks.
+
+- gh-issue-119842: Honor :c:func:`PyOS_InputHook` in the new REPL. Patch by
+  Pablo Galindo
+
+- gh-issue-119821: Fix execution of :ref:`annotation scopes
+  <annotation-scopes>` within classes when ``globals`` is set to a non-dict.
+  Patch by Jelle Zijlstra.
+
+- gh-issue-119548: Add a ``clear`` command to the REPL. Patch by Pablo
+  Galindo
+
+- gh-issue-111999: Fix the signature of :meth:`str.format_map`.
+
+- gh-issue-119560: An invalid assert in beta 1 has been removed.  The assert
+  would fail if ``PyState_FindModule()`` was used in an extension module's
+  init function before the module def had been initialized.
+
+- gh-issue-119369: Fix deadlock during thread deletion in free-threaded
+  build, which could occur when the GIL was enabled at runtime.
+
+- gh-issue-119525: Fix deadlock involving ``_PyType_Lookup()`` cache in the
+  free-threaded build when the GIL is dynamically enabled at runtime.
+
+- gh-issue-119311: Fix bug where names are unexpectedly mangled in the bases
+  of generic classes.
+
+- gh-issue-119395: Fix bug where names appearing after a generic class are
+  mangled as if they are in the generic class.
+
+- gh-issue-119213: Non-builtin modules built with argument clinic were
+  crashing if used in a subinterpreter before the main interpreter.  The
+  objects that were causing the problem by leaking between interpreters
+  carelessly have been fixed.
+
+- gh-issue-119011: Fixes ``type.__type_params__`` to return an empty tuple
+  instead of a descriptor.
+
+- gh-issue-118692: Avoid creating unnecessary :exc:`StopIteration` instances
+  for monitoring.
+
+- gh-issue-119049: Fix displaying the source line for warnings created by
+  the C API if the :mod:`warnings` module had not yet been imported.
+
+- gh-issue-118844: Fix build failures when configuring with both
+  ``--disable-gil`` and ``--enable-experimental-jit``.
+
+- gh-issue-118921: Add ``copy()`` method for ``FrameLocalsProxy`` which
+  returns a snapshot ``dict`` for local variables.
+
+- gh-issue-117657: Fix data races on the field that stores a pointer to the
+  interpreter's main thread that occur in free-threaded builds.
+
+- gh-issue-118507: Speedup :func:`os.path.isjunction` and
+  :func:`os.path.lexists` on Windows with a native implementation.
+
+- gh-issue-118561: Fix race condition in free-threaded build where
+  :meth:`!list.extend` could expose uninitialised memory to concurrent
+  readers.
+
+- gh-issue-118263: Speed up :func:`os.path.splitroot` &
+  :func:`os.path.normpath` with a direct C call.
+
+- gh-issue-117195: Avoid assertion failure for debug builds when calling
+  ``object.__sizeof__(1)``
+
+Library
+-------
+
+- gh-issue-119819: Fix regression to allow logging configuration with
+  multiprocessing queue types.
+
+- gh-issue-117142: The :mod:`ctypes` module may now be imported in all
+  subinterpreters, including those that have their own GIL.
+
+- gh-issue-118835: Fix _pyrepl crash when using custom prompt with ANSI
+  escape codes.
+
+- gh-issue-117398: The ``_datetime`` module (C implementation for
+  :mod:`datetime`) now supports being imported in multiple interpreters.
+
+- gh-issue-89727: Fix issue with :func:`shutil.rmtree` where a
+  :exc:`RecursionError` is raised on deep directory trees.
+
+- gh-issue-89727: Partially fix issue with :func:`shutil.rmtree` where a
+  :exc:`RecursionError` is raised on deep directory trees. A recursion error
+  is no longer raised when :data:`!rmtree.avoids_symlink_attacks` is false.
+
+- gh-issue-119118: Fix performance regression in the :mod:`tokenize` module
+  by caching the ``line`` token attribute and calculating the column offset
+  more efficiently.
+
+- gh-issue-89727: Fix issue with :func:`os.fwalk` where a
+  :exc:`RecursionError` was raised on deep directory trees by adjusting the
+  implementation to be iterative instead of recursive.
+
+- gh-issue-119588: ``zipfile.Path.is_symlink`` now assesses if the given
+  path is a symlink.
+
+- gh-issue-119555: Catch :exc:`SyntaxError` from :func:`compile` in the
+  runsource() method of the InteractiveColoredConsole.  Patch by Sergey B
+  Kirpichev.
+
+- gh-issue-113892: Now, the method ``sock_connect`` of
+  :class:`asyncio.ProactorEventLoop` raises a :exc:`ValueError` if given
+  socket is not in non-blocking mode, as well as in other loop
+  implementations.
+
+- gh-issue-119443: The interactive REPL no longer runs with ``from
+  __future__ import annotations`` enabled. Patch by Jelle Zijlstra.
+
+- gh-issue-117398: Objects in the datetime C-API are now all statically
+  allocated, which means better memory safety, especially when the module is
+  reloaded. This should be transparent to users.
+
+- gh-issue-118894: :mod:`asyncio` REPL now has the same capabilities as
+  PyREPL.
+
+- gh-issue-118911: In PyREPL, updated ``maybe-accept``'s logic so that if
+  the user hits :kbd:`Enter` twice, they are able to terminate the block
+  even if there's trailing whitespace. Also, now when the user hits arrow
+  up, the cursor is on the last functional line. This matches IPython's
+  behavior. Patch by Aya Elsayed.
+
+- gh-issue-111201: Remove dependency to :mod:`readline` from the new Python
+  REPL.
+
+- gh-issue-119174: Fix high DPI causes turtledemo(turtle-graphics examples)
+  windows blurry Patch by Wulian233 and Terry Jan Reedy
+
+- gh-issue-119121: Fix a NameError happening in
+  ``asyncio.staggered.staggered_race``. This function is now tested.
+
+- gh-issue-119113: Fix issue where :meth:`pathlib.PurePath.with_suffix`
+  didn't raise :exc:`TypeError` when given ``None`` as a suffix.
+
+- gh-issue-118643: Fix an AttributeError in the :mod:`email` module when
+  re-fold a long address list. Also fix more cases of incorrect encoding of
+  the address separator in the address list.
+
+- gh-issue-58933: Make :mod:`pdb` return to caller frame correctly when
+  ``f_trace`` of the caller frame is not set
+
+- gh-issue-118895: Setting attributes on :data:`typing.NoDefault` now raises
+  :exc:`AttributeError` instead of :exc:`TypeError`.
+
+- gh-issue-118868: Fixed issue where kwargs were no longer passed to the
+  logging handler QueueHandler
+
+- gh-issue-118851: ``ctx`` arguments to the constructors of :mod:`ast` node
+  classes now default to :class:`ast.Load() <ast.Load>`. Patch by Jelle
+  Zijlstra.
+
+- gh-issue-118760: Restore the default value of ``tkiter.wantobjects`` to
+  ``1``.
+
+- gh-issue-118760: Fix errors in calling Tkinter bindings on Windows.
+
+- gh-issue-118772: Allow :class:`typing.TypeVar` instances without a default
+  to follow instances without a default in some cases. Patch by Jelle
+  Zijlstra.
+
+- gh-issue-110863: :func:`os.path.realpath` now suppresses any
+  :exc:`OSError` from :func:`os.readlink` when *strict* mode is disabled
+  (the default).
+
+- gh-issue-118033: Fix :func:`dataclasses.dataclass` not creating a
+  ``__weakref__`` slot when subclassing :class:`typing.Generic`.
+
+- gh-issue-106531: In :mod:`importlib.resources`, sync with
+  `importlib_resources 6.3.2
+  <https://importlib-resources.readthedocs.io/en/latest/history.html#v6-3-2>`_,
+  including: ``MultiplexedPath`` now expects ``Traversable`` paths,
+  deprecating string arguments to ``MultiplexedPath``; Enabled support for
+  resources in namespace packages in zip files; Fixed ``NotADirectoryError``
+  when calling files on a subdirectory of a namespace package.
+
+- gh-issue-113978: Ignore warnings on text completion inside REPL.
+
+- gh-issue-103956: Fix lack of newline characters in :mod:`trace` module
+  output when line tracing is enabled but source code line for current frame
+  is not available.
+
+- gh-issue-92081: Fix missing spaces in email headers when the spaces are
+  mixed with encoded 8-bit characters.
+
+- gh-issue-103194: Prepare Tkinter for C API changes in Tcl 8.7/9.0 to avoid
+  :class:`!_tkinter.Tcl_Obj` being unexpectedly returned instead of
+  :class:`bool`, :class:`str`, :class:`bytearray`, or :class:`int`.
+
+- gh-issue-87106: Fixed handling in :meth:`inspect.Signature.bind` of
+  keyword arguments having the same name as positional-only arguments when a
+  variadic keyword argument (e.g. ``**kwargs``) is present.
+
+- bpo-45767: Fix integer conversion in :func:`os.major`, :func:`os.minor`,
+  and :func:`os.makedev`. Support device numbers larger than ``2**63-1``.
+  Support non-existent device number (``NODEV``).
+
+- gh-issue-67693: Fix :func:`urllib.parse.urlunparse` and
+  :func:`urllib.parse.urlunsplit` for URIs with path starting with multiple
+  slashes and no authority. Based on patch by Ashwin Ramaswami.
+
+Tests
+-----
+
+- gh-issue-119050: regrtest test runner: Add XML support to the refleak
+  checker (-R option). Patch by Victor Stinner.
+
+Build
+-----
+
+- gh-issue-119729: On POSIX systems, the pkg-config (``.pc``) filenames now
+  include the ABI flags, which may include debug ("d") and free-threaded
+  ("t").  For example: * ``python-3.14.pc`` (default, non-debug build) *
+  ``python-3.14d.pc`` (default, debug build) * ``python-3.14t.pc``
+  (free-threaded build)
+
+- gh-issue-115119: Fall back to the bundled libmpdec if a system version
+  cannot be found.
+
+- gh-issue-119132: Update :data:`sys.version` to identify whether the build
+  is default build or free-threading build. Patch By Donghee Na.
+
+- gh-issue-118836: Fix an ``AssertionError`` when building with
+  ``--enable-experimental-jit`` and the compiler emits a ``SHT_NOTE``
+  section.
+
+- gh-issue-118943: Fix a possible race condition affecting parallel builds
+  configured with ``--enable-experimental-jit``, in which compilation errors
+  could be caused by an incompletely-generated header file.
+
+Windows
+-------
+
+- gh-issue-119679: Ensures correct import libraries are included in Windows
+  installs.
+
+- gh-issue-119690: Adds Unicode support and fixes audit events for
+  ``_winapi.CreateNamedPipe``.
+
+- gh-issue-111201: Add support for new pyrepl on Windows
+
+- gh-issue-119070: Fixes ``py.exe`` handling of shebangs like ``/usr/bin/env
+  python3.12``, which were previously interpreted as ``python3.exe`` instead
+  of ``python3.12.exe``.
+
+- gh-issue-117505: Fixes an issue with the Windows installer not running
+  ensurepip in a fully isolated environment. This could cause unexpected
+  interactions with the user site-packages.
+
+- gh-issue-118209: Avoid crashing in :mod:`mmap` on Windows when the mapped
+  memory is inaccessible due to file system errors or access violations.
+
+- gh-issue-116145: Updated bundled Tcl/Tk to 8.6.14.
+
+C API
+-----
+
+- gh-issue-119585: Fix crash when a thread state that was created by
+  :c:func:`PyGILState_Ensure` calls a destructor that during
+  :c:func:`PyThreadState_Clear` that calls back into
+  :c:func:`PyGILState_Ensure` and :c:func:`PyGILState_Release`. This might
+  occur when in the free-threaded build or when using thread-local variables
+  whose destructors call :c:func:`PyGILState_Ensure`.
+
+- gh-issue-119336: Restore the removed ``_PyLong_NumBits()`` function. It is
+  used by the pywin32 project. Patch by Ethan Smith
+
+- gh-issue-119247: Added ``Py_BEGIN_CRITICAL_SECTION_SEQUENCE_FAST`` and
+  ``Py_END_CRITICAL_SECTION_SEQUENCE_FAST`` macros to make it possible to
+  use PySequence_Fast APIs safely when free-threaded, and update str.join to
+  work without the GIL using them.
+
+- gh-issue-111389: Add :c:macro:`PyHASH_MULTIPLIER` constant: prime
+  multiplier used in string and various other hashes. Patch by Victor
+  Stinner.
+
+- gh-issue-116984: Make mimalloc includes relative to the current file to
+  avoid embedders or extensions needing to include ``Internal/mimalloc`` if
+  they are already including internal CPython headers.
+
+- gh-issue-118789: Restore ``_PyWeakref_ClearRef`` that was previously
+  removed in Python 3.13 alpha 1.
+
+
 What's New in Python 3.13.0 beta 1?
 ===================================
 
@@ -130,8 +436,8 @@ Core and Builtins
 - gh-issue-118090: Improve :exc:`SyntaxError` message for empty type param
   brackets.
 
-- gh-issue-102511: Speed up :func:`os.path.splitroot` with a native
-  implementation.
+- gh-issue-102511: Fix :func:`os.path.normpath` for UNC paths on Windows.
+  Speed up :func:`os.path.splitroot` with a native implementation.
 
 - gh-issue-117958: Added a ``get_jit_code()`` method to access JIT compiled
   machine code from the UOp Executor when the experimental JIT is enabled.
@@ -531,14 +837,14 @@ Library
 - gh-issue-99730: HEAD requests are no longer upgraded to GET request during
   redirects in urllib.
 
-- gh-issue-66410: Callbacks registered in the :mod:`tkinter` module now take
-  arguments as various Python objects (``int``, ``float``, ``bytes``,
-  ``tuple``), not just ``str``. To restore the previous behavior set
-  :mod:`!tkinter` module global :data:`~tkinter.wantobject` to ``1`` before
-  creating the :class:`~tkinter.Tk` object or call the
-  :meth:`~tkinter.Tk.wantobject` method of the :class:`!Tk` object with
-  argument ``1``. Calling it with argument ``2`` restores the current
-  default behavior.
+- gh-issue-66410: Setting the :mod:`!tkinter` module global
+  :data:`~tkinter.wantobject` to ``2`` before creating the
+  :class:`~tkinter.Tk` object or call the :meth:`~tkinter.Tk.wantobject`
+  method of the :class:`!Tk` object with argument ``2`` makes now arguments
+  to callbacks registered in the :mod:`tkinter` module to be passed as
+  various Python objects (``int``, ``float``, ``bytes``, ``tuple``),
+  depending on their internal representation in Tcl, instead of always
+  ``str``. :data:`!tkinter.wantobject` is now set to ``2`` by default.
 
 - bpo-40943: Fix several IndexError when parse emails with truncated
   Message-ID, address, routes, etc, e.g. ``example@``.
@@ -1025,7 +1331,7 @@ Library
 Documentation
 -------------
 
-- gh-issue-115977: Remove compatibilty references to Emscripten.
+- gh-issue-115977: Remove compatibility references to Emscripten.
 
 - gh-issue-114099: Add an iOS platform guide, and flag modules not available
   on iOS.
@@ -1530,7 +1836,7 @@ Tests
   ``Tools\buildbot\test.bat`` and ``PCbuild\\rt.bat`` are now properly
   handled.
 
-- gh-issue-115420: Fix translation of exception hander targets by
+- gh-issue-115420: Fix translation of exception handler targets by
   ``_testinternalcapi.optimize_cfg``.
 
 - gh-issue-115376: Fix segfault in ``_testinternalcapi.compiler_codegen`` on
@@ -2077,7 +2383,7 @@ Build
 - gh-issue-113632: Promote WASI to a tier 2 platform and drop Emscripten
   from tier 3 in configure.ac.
 
-- gh-issue-114099: configure and Makefile were refactored to accomodate
+- gh-issue-114099: configure and Makefile were refactored to accommodate
   framework builds on Apple platforms other than macOS.
 
 - gh-issue-114875: Add :c:func:`!getgrent` as a prerequisite for building
@@ -2287,8 +2593,8 @@ Core and Builtins
 - gh-issue-112943: Correctly compute end column offsets for multiline tokens
   in the :mod:`tokenize` module. Patch by Pablo Galindo
 
-- gh-issue-112125: Fix None.__ne__(None) returning NotImplemented instead of
-  False
+- gh-issue-112125: Fix ``None.__ne__(None)`` returning ``NotImplemented``
+  instead of ``False``.
 
 - gh-issue-74616: :func:`input` now raises a ValueError when output on the
   terminal if the prompt contains embedded null characters instead of
@@ -2418,7 +2724,7 @@ Library
 
 - gh-issue-111693: :func:`asyncio.Condition.wait()` now re-raises the same
   :exc:`CancelledError` instance that may have caused it to be interrupted.
-  Fixed race condition in :func:`asyncio.Semaphore.aquire` when interrupted
+  Fixed race condition in :func:`asyncio.Semaphore.acquire` when interrupted
   with a :exc:`CancelledError`.
 
 - gh-issue-113791: Add ``CLOCK_MONOTONIC_RAW_APPROX`` and
@@ -2534,11 +2840,11 @@ Library
   :func:`os.chmod` on Windows.
 
 - gh-issue-113188: Fix :func:`shutil.copymode` and :func:`shutil.copystat`
-  on Windows. Previously they worked differenly if *dst* is a symbolic link:
-  they modified the permission bits of *dst* itself rather than the file it
-  points to if *follow_symlinks* is true or *src* is not a symbolic link,
-  and did not modify the permission bits if *follow_symlinks* is false and
-  *src* is a symbolic link.
+  on Windows. Previously they worked differently if *dst* is a symbolic
+  link: they modified the permission bits of *dst* itself rather than the
+  file it points to if *follow_symlinks* is true or *src* is not a symbolic
+  link, and did not modify the permission bits if *follow_symlinks* is false
+  and *src* is a symbolic link.
 
 - gh-issue-113119: :func:`os.posix_spawn` now accepts ``env=None``, which
   makes the newly spawned process use the current process environment. Patch
@@ -2760,7 +3066,7 @@ Library
   potentially inaccurate values. Add optional *strict* parameter to these
   two functions: use ``strict=False`` to get the old behavior, accept
   malformed inputs. ``getattr(email.utils, 'supports_strict_parsing',
-  False)`` can be use to check if the *strict* paramater is available. Patch
+  False)`` can be use to check if the *strict* parameter is available. Patch
   by Thomas Dwyer and Victor Stinner to improve the :cve:`2023-27043` fix.
 
 - gh-issue-52161: :meth:`cmd.Cmd.do_help` now cleans docstrings with
@@ -2783,7 +3089,7 @@ Library
   ``__next__()`` method of :class:`itertools.pairwise`.
 
 - gh-issue-91539: Small (10 - 20%) and trivial performance improvement of
-  :func:`urrlib.request.getproxies_environment`, typically useful when there
+  :func:`urllib.request.getproxies_environment`, typically useful when there
   are many environment variables to go over.
 
 - gh-issue-103363: Add *follow_symlinks* keyword-only argument to
@@ -3166,7 +3472,7 @@ Core and Builtins
 - gh-issue-111438: Add support for sharing floats between interpreters using
   the cross-interpreter API.  Patch by Anthony Shaw.
 
-- gh-issue-111435: Add support for sharing of True and False between
+- gh-issue-111435: Add support for sharing of ``True`` and ``False`` between
   interpreters using the cross-interpreter API.  Patch by Anthony Shaw.
 
 - gh-issue-102388: Fix a bug where ``iso2022_jp_3`` and ``iso2022_jp_2004``
@@ -3427,7 +3733,7 @@ Library
   width of look-behind pattern.
 
 - gh-issue-109466: Add the :attr:`ipaddress.IPv4Address.ipv6_mapped`
-  property, which retuns the IPv4-mapped IPv6 address.
+  property, which returns the IPv4-mapped IPv6 address.
 
 - gh-issue-85098: Implement the CLI of the :mod:`symtable` module and
   improve the repr of :class:`~symtable.Symbol`.
@@ -3587,9 +3893,9 @@ IDLE
 ----
 
 - bpo-35668: Add docstrings to the IDLE debugger module. Fix two bugs:
-  initialize Idb.botframe (should be in Bdb); in Idb.in_rpc_code, check
-  whether prev_frame is None before trying to use it. Greatly expand
-  test_debugger.
+  initialize ``Idb.botframe`` (should be in Bdb); in ``Idb.in_rpc_code``,
+  check whether ``prev_frame`` is ``None`` before trying to use it. Greatly
+  expand test_debugger.
 
 Tools/Demos
 -----------
@@ -3940,7 +4246,7 @@ Core and Builtins
 - gh-issue-108520: Fix
   :meth:`multiprocessing.synchronize.SemLock.__setstate__` to properly
   initialize :attr:`multiprocessing.synchronize.SemLock._is_fork_ctx`. This
-  fixes a regression when passing a SemLock accross nested processes.
+  fixes a regression when passing a SemLock across nested processes.
 
   Rename :attr:`multiprocessing.synchronize.SemLock.is_fork_ctx` to
   :attr:`multiprocessing.synchronize.SemLock._is_fork_ctx` to avoid exposing
@@ -3997,7 +4303,7 @@ Core and Builtins
   Fixes crash when tracing in recursive calls to Python classes.
 
 - gh-issue-108035: Remove the ``_PyCFrame`` struct, moving the pointer to
-  the current intepreter frame back to the threadstate, as it was for 3.10
+  the current interpreter frame back to the threadstate, as it was for 3.10
   and earlier. The ``_PyCFrame`` existed as a performance optimization for
   tracing. Since PEP 669 has been implemented, this optimization no longer
   applies.
@@ -4076,10 +4382,10 @@ Core and Builtins
 
 - gh-issue-106898: Add the exception as the third argument to ``PY_UNIND``
   callbacks in ``sys.monitoring``. This makes the ``PY_UNWIND`` callback
-  consistent with the other exception hanlding callbacks.
+  consistent with the other exception handling callbacks.
 
-- gh-issue-106895: Raise a ``ValueError`` when a monitoring callback funtion
-  returns ``DISABLE`` for events that cannot be disabled locally.
+- gh-issue-106895: Raise a ``ValueError`` when a monitoring callback
+  function returns ``DISABLE`` for events that cannot be disabled locally.
 
 - gh-issue-106897: Add a ``RERAISE`` event to ``sys.monitoring``, which
   occurs when an exception is reraise, either explicitly by a plain
@@ -4104,7 +4410,7 @@ Core and Builtins
   By Donghee Na.
 
 - gh-issue-107015: The ASYNC and AWAIT tokens are removed from the Grammar,
-  which removes the posibility of making ``async`` and ``await`` soft
+  which removes the possibility of making ``async`` and ``await`` soft
   keywords when using ``feature_version<7`` in :func:`ast.parse`.
 
 - gh-issue-106917: Fix classmethod-style :func:`super` method calls (i.e.,
@@ -4113,7 +4419,7 @@ Core and Builtins
   target of the call is not a classmethod.
 
 - gh-issue-105699: Python no longer crashes due an infrequent race when
-  initialzing per-interpreter interned strings.  The crash would manifest
+  initializing per-interpreter interned strings.  The crash would manifest
   when the interpreter was finalized.
 
 - gh-issue-105699: Python no longer crashes due to an infrequent race in
@@ -4443,7 +4749,7 @@ Library
   undisplayable objects
 
 - gh-issue-110519: Deprecation warning about non-integer number in
-  :mod:`gettext` now alwais refers to the line in the user code where
+  :mod:`gettext` now always refers to the line in the user code where
   gettext function or method is used. Previously it could refer to a line in
   ``gettext`` code.
 
@@ -4458,7 +4764,7 @@ Library
 - gh-issue-106670: In :mod:`pdb`, set convenience variable ``$_exception``
   for post mortem debugging.
 
-- gh-issue-110365: Fix :func:`termios.tcsetattr` bug that was overwritting
+- gh-issue-110365: Fix :func:`termios.tcsetattr` bug that was overwriting
   existing errors during parsing integers from ``term`` list.
 
 - gh-issue-109653: Slightly improve the import time of several
@@ -4487,7 +4793,7 @@ Library
   allows a single data point.
 
 - gh-issue-110036: On Windows, multiprocessing ``Popen.terminate()`` now
-  catchs :exc:`PermissionError` and get the process exit code. If the
+  catches :exc:`PermissionError` and get the process exit code. If the
   process is still running, raise again the :exc:`PermissionError`.
   Otherwise, the process terminated as expected: store its exit code. Patch
   by Victor Stinner.
@@ -4783,7 +5089,7 @@ Library
   ``SSL_ERROR_SYSCALL`` instead of ``SSL_ERROR_SSL`` when a certification
   verification has failed, but the error parameters will still contain
   ``ERR_LIB_SSL`` and ``SSL_R_CERTIFICATE_VERIFY_FAILED``. We are now
-  detecting this situation and raising the appropiate
+  detecting this situation and raising the appropriate
   ``ssl.SSLCertVerificationError``. Patch by Pablo Galindo
 
 - gh-issue-107576: Fix :func:`types.get_original_bases` to only return
@@ -4823,7 +5129,7 @@ Library
   faster :meth:`clear` method. Patch by James Cave.
 
 - gh-issue-82500: Fix overflow on 32-bit systems with :mod:`asyncio`
-  :func:`os.sendfile` implemention.
+  :func:`os.sendfile` implementation.
 
 - gh-issue-83006: Document behavior of :func:`shutil.disk_usage` for
   non-mounted filesystems on Unix.
@@ -4913,7 +5219,7 @@ Library
 - gh-issue-106584: Fix exit code for ``unittest`` if all tests are skipped.
   Patch by Egor Eliseev.
 
-- gh-issue-106566: Optimize ``(?!)`` (pattern which alwais fails) in regular
+- gh-issue-106566: Optimize ``(?!)`` (pattern which always fails) in regular
   expressions.
 
 - gh-issue-106554: :mod:`selectors`: Reduce Selector overhead by using a
@@ -4982,8 +5288,8 @@ Library
   major type checker ever added support for this decorator. Patch by Alex
   Waygood.
 
-- gh-issue-102541: Make pydoc.doc catch bad module ImportError when output
-  stream is not None.
+- gh-issue-102541: Make :func:`pydoc.doc` catch bad module
+  :exc:`ImportError` when output stream is not ``None``.
 
 - gh-issue-106263: Fix crash when calling ``repr`` with a manually
   constructed SignalDict object. Patch by Charlie Zhao.
@@ -5001,7 +5307,7 @@ Library
 - gh-issue-106075: Added ``asyncio.taskgroups.__all__`` to
   ``asyncio.__all__`` for export in star imports.
 
-- gh-issue-104527: Zipapp will now skip over apending an archive to itself.
+- gh-issue-104527: Zipapp will now skip over appending an archive to itself.
 
 - gh-issue-106046: Improve the error message from :func:`os.fspath` if
   called on an object where ``__fspath__`` is set to ``None``. Patch by Alex
@@ -5396,7 +5702,7 @@ Library
   :func:`threading.RLock`.
 
 - gh-issue-88233: Refactored ``zipfile._strip_extra`` to use higher level
-  abstactions for extras instead of a heavy-state loop.
+  abstractions for extras instead of a heavy-state loop.
 
 - gh-issue-102024: Reduce calls of ``_idle_semaphore.release()`` in
   :func:`concurrent.futures.thread._worker`.
@@ -5564,7 +5870,7 @@ Tests
 
 - gh-issue-109594: Fix test_timeout() of test_concurrent_futures.test_wait.
   Remove the future which may or may not complete depending if it takes
-  longer than the timeout ot not. Keep the second future which does not
+  longer than the timeout or not. Keep the second future which does not
   complete before wait() timeout. Patch by Victor Stinner.
 
 - gh-issue-109972: Split test_gdb.py file into a test_gdb package made of
@@ -5600,7 +5906,7 @@ Tests
 
 - gh-issue-109566: regrtest: Add ``--fast-ci`` and ``--slow-ci`` options.
   ``--fast-ci`` uses a default timeout of 10 minutes and ``-u all,-cpu``
-  (skip slowest tests). ``--slow-ci`` uses a default timeout of 20 minues
+  (skip slowest tests). ``--slow-ci`` uses a default timeout of 20 minutes
   and ``-u all`` (run all tests). Patch by Victor Stinner.
 
 - gh-issue-109425: libregrtest now decodes stdout of test worker processes
@@ -5656,7 +5962,7 @@ Tests
 
 - gh-issue-91960: Skip ``test_gdb`` if gdb is unable to retrieve Python
   frame objects: if a frame is ``<optimized out>``. When Python is built
-  with "clang -Og", gdb can fail to retrive the *frame* parameter of
+  with "clang -Og", gdb can fail to retrieve the *frame* parameter of
   ``_PyEval_EvalFrameDefault()``. In this case, tests like ``py_bt()`` are
   likely to fail. Without getting access to Python frames, ``python-gdb.py``
   is mostly clueless on retrieving the Python traceback. Moreover,
@@ -6451,7 +6757,7 @@ Core and Builtins
 
 - gh-issue-103492: Clarify :exc:`SyntaxWarning` with literal ``is``
   comparison by specifying which literal is problematic, since comparisons
-  using ``is`` with e.g. None and bool literals are idiomatic.
+  using ``is`` with e.g. ``None`` and bool literals are idiomatic.
 
 - gh-issue-87729: Add :opcode:`LOAD_SUPER_ATTR` (and a specialization for
   ``super().method()``) to speed up ``super().method()`` and
@@ -6832,7 +7138,7 @@ Library
 
 - gh-issue-103092: Adapt the :mod:`winsound` extension module to :pep:`687`.
 
-- gh-issue-93910: Remove deprecation of enum ``memmber.member`` access.
+- gh-issue-93910: Remove deprecation of enum ``member.member`` access.
 
 - gh-issue-102978: Fixes :func:`unittest.mock.patch` not enforcing function
   signatures for methods decorated with ``@classmethod`` or
@@ -7667,7 +7973,7 @@ Library
   a :exc:`~sqlite3.ProgrammingError`. Patch by Erlend E. Aasland.
 
 - gh-issue-101446: Change repr of :class:`collections.OrderedDict` to use
-  regular dictionary formating instead of pairs of keys and values.
+  regular dictionary formatting instead of pairs of keys and values.
 
 - gh-issue-101362: Speed up :class:`pathlib.PurePath` construction by
   handling arguments more uniformly. When a :class:`pathlib.Path` argument
@@ -8018,7 +8324,7 @@ Tests
 Build
 -----
 
-- gh-issue-101282: Update BOLT configration not to use depreacted usage of
+- gh-issue-101282: Update BOLT configuration not to use deprecated usage of
   ``--split functions``. Patch by Donghee Na.
 
 - gh-issue-101522: Allow overriding Windows dependencies versions and paths
@@ -8106,8 +8412,8 @@ Core and Builtins
 - gh-issue-100719: Removed the co_nplaincellvars field from the code object,
   as it is redundant.
 
-- gh-issue-100637: Fix :func:`int.__sizeof__` calculation to include the 1
-  element ob_digit array for 0 and False.
+- gh-issue-100637: Fix :func:`int.__sizeof__` calculation to include the
+  1-element ``ob_digit`` array for ``0`` and ``False``.
 
 - gh-issue-100649: Update the native_thread_id field of PyThreadState after
   fork.
@@ -8385,7 +8691,7 @@ Library
 
 - gh-issue-96127: ``inspect.signature`` was raising ``TypeError`` on call
   with mock objects. Now it correctly returns ``(*args, **kwargs)`` as
-  infered signature.
+  inferred signature.
 
 - gh-issue-95882: Fix a 3.11 regression in
   :func:`~contextlib.asynccontextmanager`, which caused it to propagate
@@ -8557,7 +8863,7 @@ Core and Builtins
   ``sys``. Patch by Victor Stinner.
 
 - gh-issue-99581: Fixed a bug that was causing a buffer overflow if the
-  tokenizer copies a line missing the newline caracter from a file that is
+  tokenizer copies a line missing the newline character from a file that is
   as long as the available tokenizer buffer. Patch by Pablo galindo
 
 - gh-issue-99553: Fix bug where an :exc:`ExceptionGroup` subclass can wrap a
@@ -8711,8 +9017,8 @@ Library
 
 - gh-issue-82836: Fix :attr:`~ipaddress.IPv4Address.is_private` properties
   in the :mod:`ipaddress` module. Previously non-private networks
-  (0.0.0.0/0) would return True from this method; now they correctly return
-  False.
+  (0.0.0.0/0) would return ``True`` from this method; now they correctly
+  return ``False``.
 
 - gh-issue-96828: Add an :const:`~ssl.OP_ENABLE_KTLS` option for enabling
   the use of the kernel TLS (kTLS). Patch by Illia Volochii.
@@ -9181,7 +9487,7 @@ Documentation
 Tests
 -----
 
-- gh-issue-98903: The Python test suite now fails wit exit code 4 if no
+- gh-issue-98903: The Python test suite now fails with exit code 4 if no
   tests ran. It should help detecting typos in test names and test methods.
 
 - gh-issue-98713: Fix a bug in the :mod:`typing` tests where a test relying
@@ -9508,7 +9814,7 @@ Core and Builtins
 - gh-issue-96587: Correctly raise ``SyntaxError`` on exception groups
   (:pep:`654`) on python versions prior to 3.11
 
-- gh-issue-96569: Remove two cases of undefined behavoir, by adding NULL
+- gh-issue-96569: Remove two cases of undefined behavior, by adding NULL
   checks.
 
 - gh-issue-96582: Fix possible ``NULL`` pointer dereference in
@@ -10252,7 +10558,7 @@ Library
 
 - gh-issue-95289: Fix :class:`asyncio.TaskGroup` to propagate exception when
   :exc:`asyncio.CancelledError` was replaced with another exception by a
-  context manger. Patch by Kumar Aditya and Guido van Rossum.
+  context manager. Patch by Kumar Aditya and Guido van Rossum.
 
 - gh-issue-94909: Fix incorrect joining of relative Windows paths with
   drives in :class:`pathlib.PurePath` initializer.
@@ -10599,8 +10905,9 @@ Library
   descriptor for a process with :func:`os.pidfd_open` in non-blocking mode.
   Patch by Kumar Aditya.
 
-- gh-issue-88123: Implement Enum __contains__ that returns True or False to
-  replace the deprecated behaviour that would sometimes raise a TypeError.
+- gh-issue-88123: Implement ``Enum.__contains__`` that returns ``True`` or
+  ``False`` to replace the deprecated behaviour that would sometimes raise a
+  :exc:`TypeError`.
 
 - gh-issue-93297: Make asyncio task groups prevent child tasks from being
   GCed
@@ -10661,7 +10968,8 @@ Library
   the nonexistent ``InvalidHeaderError`` to the defect list. It should have
   been ``InvalidHeaderDefect``.
 
-- gh-issue-92986: Fix :func:`ast.unparse` when ``ImportFrom.level`` is None
+- gh-issue-92986: Fix :func:`ast.unparse` when ``ImportFrom.level`` is
+  ``None``
 
 - gh-issue-92932: Now :func:`~dis.dis` and :func:`~dis.get_instructions`
   handle operand values for instructions prefixed by ``EXTENDED_ARG_QUICK``.
@@ -10682,7 +10990,7 @@ Library
   has the same size as the :c:type:`time_t` type in C.
 
 - gh-issue-92839: Fixed crash resulting from calling bisect.insort() or
-  bisect.insort_left() with the key argument not equal to None.
+  bisect.insort_left() with the key argument not equal to ``None``.
 
 - gh-issue-90473: :mod:`subprocess` now fails early on Emscripten and WASI
   platforms to work around missing :func:`os.pipe` on WASI.
@@ -10800,7 +11108,7 @@ Library
   times.
 
 - gh-issue-91447: Fix findtext in the xml module to only give an empty
-  string when the text attribute is set to None.
+  string when the text attribute is set to ``None``.
 
 - gh-issue-91456: Deprecate current default auto() behavior:  In 3.13 the
   default will be for for auto() to always return the largest member value
@@ -10935,7 +11243,7 @@ Documentation
   and add warning that they are deprecated. Contributed by C.A.M. Gerlach.
 
 - gh-issue-95454: Replaced incorrectly written true/false values in
-  documentiation. Patch by Robert O'Shea
+  documentation. Patch by Robert O'Shea
 
 - gh-issue-95451: Update library documentation with :ref:`availability
   information <wasm-availability>` on WebAssembly platforms
@@ -11599,12 +11907,12 @@ Core and Builtins
   3.11a7, specialization may have prevented Python-to-Python calls
   respecting PEP 523.
 
-- gh-issue-92203: Add a closure keyword-only parameter to exec(). It can
-  only be specified when exec-ing a code object that uses free variables.
-  When specified, it must be a tuple, with exactly the number of cell
-  variables referenced by the code object. closure has a default value of
-  None, and it must be None if the code object doesn't refer to any free
-  variables.
+- gh-issue-92203: Add a closure keyword-only parameter to :func:`exec()`. It
+  can only be specified when exec-ing a code object that uses free
+  variables. When specified, it must be a tuple, with exactly the number of
+  cell variables referenced by the code object. closure has a default value
+  of ``None``, and it must be ``None`` if the code object doesn't refer to
+  any free variables.
 
 - gh-issue-91173: Disable frozen modules in debug builds. Patch by Kumar
   Aditya.
@@ -11820,8 +12128,9 @@ Library
 - gh-issue-90887: Adding ``COPYFILE_STAT``, ``COPYFILE_ACL`` and
   ``COPYFILE_XATTR`` constants for :func:`os.fcopyfile` available in macOs.
 
-- gh-issue-91215: For @dataclass, add weakref_slot. Default is False. If
-  True, and if slots=True, add a slot named "__weakref__", which will allow
+- gh-issue-91215: For :func:`@dataclass <dataclasses.dataclass>`, add
+  *weakref_slot*. The new parameter defaults to ``False``. If true, and if
+  ``slots=True``, add a slot named ``"__weakref__"``, which will allow
   instances to be weakref'd. Contributed by Eric V. Smith
 
 - gh-issue-85984: New function os.login_tty() for Unix.
@@ -12760,7 +13069,7 @@ Library
   library docs but not yet implemented.
 
 - bpo-43352: Add an Barrier object in synchronization primitives of
-  *asyncio* Lib in order to be consistant with Barrier from *threading* and
+  *asyncio* Lib in order to be consistent with Barrier from *threading* and
   *multiprocessing* libs*
 
 - bpo-35859: :mod:`re` module, fix a few bugs about capturing group. In rare
@@ -12773,7 +13082,7 @@ Documentation
 
 - bpo-47126: Update PEP URLs to :pep:`676`'s new canonical form.
 
-- bpo-47040: Clarified the old Python versions compatiblity note of
+- bpo-47040: Clarified the old Python versions compatibility note of
   :func:`binascii.crc32` / :func:`zlib.adler32` / :func:`zlib.crc32`
   functions.
 
@@ -13327,7 +13636,7 @@ Build
 - bpo-40280: Fix wasm32-emscripten test failures and platform issues. -
   Disable syscalls that are not supported or don't work, e.g.   wait,
   getrusage, prlimit, mkfifo, mknod, setres[gu]id, setgroups. - Use fd_count
-  to cound open fds. - Add more checks for subprocess and fork. - Add
+  to count open fds. - Add more checks for subprocess and fork. - Add
   workarounds for missing _multiprocessing and failing socket.accept(). -
   Enable bzip2. - Disable large file support. - Disable signal.alarm.
 
@@ -13361,7 +13670,7 @@ C API
 -----
 
 - bpo-46748: Python's public headers no longer import ``<stdbool.h>``,
-  leaving code that embedd/extends Python free to define ``bool``, ``true``
+  leaving code that embeds/extends Python free to define ``bool``, ``true``
   and ``false``.
 
 - bpo-46836: Move the :c:type:`PyFrameObject` type definition (``struct
@@ -13369,14 +13678,14 @@ C API
   Victor Stinner.
 
 - bpo-45459: Rename ``Include/buffer.h`` header file to
-  ``Include/pybuffer.h`` to avoid conflits with projects having an existing
+  ``Include/pybuffer.h`` to avoid conflicts with projects having an existing
   ``buffer.h`` header file. Patch by Victor Stinner.
 
 - bpo-45412: Remove the ``HAVE_PY_SET_53BIT_PRECISION`` macro (moved to the
   internal C API). Patch by Victor Stinner.
 
 - bpo-46613: Added function :c:func:`PyType_GetModuleByDef`, which allows
-  accesss to module state when a method's defining class is not available.
+  access to module state when a method's defining class is not available.
 
 
 What's New in Python 3.11.0 alpha 5?
@@ -13661,7 +13970,7 @@ Tests
 
 - bpo-13886: Skip test_builtin PTY tests on non-ASCII characters if the
   readline module is loaded. The readline module changes input() behavior,
-  but test_builtin is not intented to test the readline module. Patch by
+  but test_builtin is not intended to test the readline module. Patch by
   Victor Stinner.
 
 - bpo-40280: Add :func:`test.support.requires_fork` decorators to mark tests
@@ -14696,7 +15005,7 @@ Core and Builtins
   import a frozen module but frozen modules are disabled.
 
 - bpo-44525: Specialize simple calls to Python functions (no starargs,
-  keyowrd dict, or closure)
+  keyword dict, or closure)
 
 - bpo-45530: Cases of sorting using tuples as keys may now be significantly
   faster in some cases. Patch by Tim Peters.
@@ -14813,8 +15122,8 @@ Library
   if the underlying SQLite API signals memory error. Patch by Erlend E.
   Aasland.
 
-- bpo-45557: pprint.pprint() now handles underscore_numbers correctly.
-  Previously it was always setting it to False.
+- bpo-45557: :func:`pprint.pprint` now handles *underscore_numbers*
+  correctly. Previously it was always setting it to ``False``.
 
 - bpo-44019: Add :func:`operator.call` to ``operator.__all__``. Patch by
   Kreusada.
@@ -15579,7 +15888,7 @@ Core and Builtins
   :term:`asynchronous context manager` protocols correspondingly.
 
 - bpo-44297: Make sure that the line number is set when entering a
-  comprehension scope. Ensures that backtraces inclusing generator
+  comprehension scope. This ensures that backtraces including generator
   expressions show the correct line number.
 
 - bpo-44456: Improve the syntax error when mixing positional and keyword
@@ -16238,7 +16547,7 @@ Library
   ``DeprecationWarning``.
 
 - bpo-37880: argparse actions store_const and append_const each receive a
-  default value of None when the ``const`` kwarg is not provided.
+  default value of ``None`` when the ``const`` kwarg is not provided.
   Previously, this raised a :exc:`TypeError`.
 
 - bpo-44389: Fix deprecation of :data:`ssl.OP_NO_TLSv1_3`
@@ -16689,7 +16998,7 @@ Documentation
   evaluating operator expressions.
 
 - bpo-41621: Document that :class:`collections.defaultdict` parameter
-  ``default_factory`` defaults to None and is positional-only.
+  ``default_factory`` defaults to ``None`` and is positional-only.
 
 - bpo-41576: document BaseException in favor of bare except
 
@@ -18886,7 +19195,7 @@ Library
 
 - bpo-42644: ``logging.disable`` will now validate the types and value of
   its parameter. It also now accepts strings representing the levels (as
-  does ``loging.setLevel``) instead of only the numerical values.
+  does ``logging.setLevel``) instead of only the numerical values.
 
 - bpo-42639: At Python exit, if a callback registered with
   :func:`atexit.register` fails, its exception is now logged. Previously,
@@ -21770,7 +22079,7 @@ Library
   exit code -11."
 
 - bpo-40108: Improve the error message when triying to import a module using
-  :mod:`runpy` and incorrently use the ".py" extension at the end of the
+  :mod:`runpy` and incorrectly using the ".py" extension at the end of the
   module name. Patch by Pablo Galindo.
 
 - bpo-40094: Add :func:`os.waitstatus_to_exitcode` function: convert a wait
@@ -24064,7 +24373,7 @@ Library
 
 - bpo-38371: Deprecated the ``split()`` method in
   :class:`_tkinter.TkappType` in favour of the ``splitlist()`` method which
-  has more consistent and predicable behavior.
+  has more consistent and predictable behavior.
 
 - bpo-38341: Add :exc:`smtplib.SMTPNotSupportedError` to the :mod:`smtplib`
   exported names.
@@ -26516,7 +26825,7 @@ Library
 - bpo-36348: The :meth:`imap.IMAP4.logout` method no longer ignores silently
   arbitrary exceptions.
 
-- bpo-31904: Add time module support and fix test_time faiures for VxWorks.
+- bpo-31904: Add time module support and fix test_time failures for VxWorks.
 
 - bpo-36227: Added support for keyword arguments ``default_namespace`` and
   ``xml_declaration`` in functions ``ElementTree.tostring()`` and
@@ -26600,7 +26909,7 @@ Documentation
   example in the :mod:`wsgiref` documentation.  Contributed by Stéphane
   Wirtel.
 
-- bpo-36157: Added Documention for  PyInterpreterState_Main().
+- bpo-36157: Added documentation for PyInterpreterState_Main().
 
 - bpo-33043: Updates the docs.python.org page with the addition of a
   'Contributing to Docs' link at the end of the page (between 'Reporting
@@ -29520,8 +29829,8 @@ Documentation
 - bpo-34913: Add documentation about the new command line interface of the
   gzip module.
 
-- bpo-32174: chm document displays non-ASCII charaters properly on some MBCS
-  Windows systems.
+- bpo-32174: chm document displays non-ASCII characters properly on some
+  MBCS Windows systems.
 
 - bpo-11233: Create availability directive for documentation.  Original
   patch by Georg Brandl.
