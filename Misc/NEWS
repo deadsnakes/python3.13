@@ -2,6 +2,256 @@
 Python News
 +++++++++++
 
+What's New in Python 3.13.0 beta 3?
+===================================
+
+*Release date: 2024-06-27*
+
+Core and Builtins
+-----------------
+
+- gh-issue-120838: :c:func:`Py_Finalize()` and :c:func:`Py_FinalizeEx()` now
+  always run with the main interpreter active.
+
+- gh-issue-113433: Subinterpreters now get cleaned up automatically during
+  runtime finalization.
+
+- gh-issue-119462: Make sure that invariants of type versioning are
+  maintained: * Superclasses always have their version number assigned
+  before subclasses * The version tag is always zero if the tag is not
+  valid. * The version tag is always non-zero if the tag is valid.
+
+- gh-issue-120437: Fix ``_CHECK_STACK_SPACE`` optimization problems
+  introduced in :gh:`118322`.
+
+- gh-issue-120722: Correctly set the bytecode position on return
+  instructions within lambdas. Patch by Jelle Zijlstra.
+
+- gh-issue-120367: Fix bug where compiler creates a redundant jump during
+  pseudo-op replacement. Can only happen with a synthetic AST that has a try
+  on the same line as the instruction following the exception handler.
+
+- gh-issue-113993: Strings interned with :func:`sys.intern` are again
+  garbage-collected when no longer used, as per the documentation. Strings
+  interned with the C function :c:func:`PyUnicode_InternInPlace` are still
+  immortal. Internals of the string interning mechanism have been changed.
+  This may affect performance and identities of :class:`str` objects.
+
+- gh-issue-120384: Fix an array out of bounds crash in
+  ``list_ass_subscript``, which could be invoked via some specificly
+  tailored input: including concurrent modification of a list object, where
+  one thread assigns a slice and another clears it.
+
+- gh-issue-120367: Fix crash in compiler on code with redundant NOPs and
+  JUMPs which show up after exception handlers are moved to the end of the
+  code.
+
+- gh-issue-120380: Fix Python implementation of :class:`pickle.Pickler` for
+  :class:`bytes` and :class:`bytearray` objects when using protocol version
+  5. Patch by Bénédikt Tran.
+
+- gh-issue-120400: Support Linux perf profiler to see Python calls on RISC-V
+  architecture.
+
+- gh-issue-120221: Deliver real signals on Ctrl-C and Ctrl-Z in the new
+  REPL. Patch by Pablo Galindo
+
+- gh-issue-120346: Respect :envvar:`PYTHON_BASIC_REPL` when running in
+  interative inspect mode (``python -i``). Patch by Pablo Galindo
+
+- gh-issue-93691: Fix source locations of instructions generated for the
+  iterator of a for statement.
+
+- gh-issue-120198: Fix a crash when multiple threads read and write to the
+  same ``__class__`` of an object concurrently.
+
+- gh-issue-120298: Fix use-after free in ``list_richcompare_impl`` which can
+  be invoked via some specificly tailored evil input.
+
+- gh-issue-119666: Fix a compiler crash in the case where two comprehensions
+  in class scope both reference ``__class__``.
+
+- gh-issue-120225: Fix crash in compiler on empty block at end of exception
+  handler.
+
+- gh-issue-119933: Improve :exc:`SyntaxError` messages for invalid
+  expressions in a type parameters bound, a type parameter constraint tuple
+  or a default type parameter. Patch by Bénédikt Tran.
+
+- bpo-24766: Fix handling of ``doc`` argument to subclasses of ``property``.
+
+Library
+-------
+
+- gh-issue-121027: Add a future warning in
+  :meth:`!functools.partial.__get__`. In future Python versions
+  :class:`functools.partial` will be a method descriptor.
+
+- gh-issue-121025: Improve the :meth:`~object.__repr__` of
+  :class:`functools.partialmethod`. Patch by Bénédikt Tran.
+
+- gh-issue-121018: Fixed an issue where
+  :meth:`!argparse.ArgumentParser.parses_args` did not honor
+  ``exit_on_error=False`` when given unrecognized arguments. Patch by Ben
+  Hsing.
+
+- gh-issue-119614: Fix truncation of strings with embedded null characters
+  in some internal operations in :mod:`tkinter`.
+
+- gh-issue-120910: When reading installed files from an egg, use
+  ``relative_to(walk_up=True)`` to honor files installed outside of the
+  installation root.
+
+- gh-issue-120888: Upgrade pip wheel bundled with ensurepip (pip 24.1.1)
+
+- gh-issue-101830: Accessing the :mod:`tkinter` object's string
+  representation no longer converts the underlying Tcl object to a string on
+  Windows.
+
+- gh-issue-120811: Fix possible memory leak in
+  :meth:`contextvars.Context.run`.
+
+- gh-issue-120769: Make empty line in :mod:`pdb` repeats the last command
+  even when the command is from ``cmdqueue``.
+
+- gh-issue-120732: Fix ``name`` passing to :class:`unittest.mock.Mock`
+  object when using :func:`unittest.mock.create_autospec`.
+
+- gh-issue-120683: Fix an error in :class:`logging.LogRecord`, when the
+  integer part of the timestamp is rounded up, while the millisecond
+  calculation truncates, causing the log timestamp to be wrong by up to 999
+  ms (affected roughly 1 in 8 million timestamps).
+
+- gh-issue-120633: Move scrollbar and remove tear-off menus in turtledemo.
+
+- gh-issue-120541: Improve the prompt in the "less" pager when :func:`help`
+  is called with non-string argument.
+
+- gh-issue-120495: Fix incorrect exception handling in Tab Nanny. Patch by
+  Wulian233.
+
+- gh-issue-120381: Correct :func:`inspect.ismethoddescriptor` to check also
+  for the lack of :meth:`~object.__delete__`.  Patch by Jan Kaliszewski.
+
+- gh-issue-90425: The OS byte in gzip headers is now always set to 255 when
+  using :func:`gzip.compress`.
+
+- gh-issue-120343: Fix column offset reporting for tokens that come after
+  multiline f-strings in the :mod:`tokenize` module.
+
+- gh-issue-119600: Fix :func:`unittest.mock.patch` to not read attributes of
+  the target when ``new_callable`` is set. Patch by Robert Collins.
+
+- gh-issue-114053: Fix edge-case bug where :func:`typing.get_type_hints`
+  would produce incorrect results if type parameters in a class scope were
+  overridden by assignments in a class scope and ``from __future__ import
+  annotations`` semantics were enabled. Patch by Alex Waygood.
+
+- gh-issue-114053: Fix erroneous :exc:`NameError` when calling
+  :func:`inspect.get_annotations` with ``eval_str=True``` on a class that
+  made use of :pep:`695` type parameters in a module that had ``from
+  __future__ import annotations`` at the top of the file. Patch by Alex
+  Waygood.
+
+- gh-issue-120268: Prohibit passing ``None`` to pure-Python
+  :meth:`datetime.date.fromtimestamp` to achieve consistency with
+  C-extension implementation.
+
+- gh-issue-120244: Fix memory leak in :func:`re.sub()` when the replacement
+  string contains backreferences.
+
+- gh-issue-120211: Fix :mod:`tkinter.ttk` with Tcl/Tk 9.0.
+
+- gh-issue-71587: Fix crash in C version of
+  :meth:`datetime.datetime.strptime` when called again on the restarted
+  interpreter.
+
+- gh-issue-120161: :mod:`datetime` no longer crashes in certain complex
+  reference cycle situations.
+
+- gh-issue-119698: Fix :meth:`symtable.Class.get_methods` and document its
+  behaviour. Patch by Bénédikt Tran.
+
+- gh-issue-120121: Add :exc:`concurrent.futures.InvalidStateError` to
+  module's ``__all__``.
+
+- gh-issue-119933: Add the :class:`symtable.SymbolTableType` enumeration to
+  represent the possible outputs of the
+  :class:`symtable.SymbolTable.get_type` method. Patch by Bénédikt Tran.
+
+- gh-issue-120108: Fix calling :func:`copy.deepcopy` on :mod:`ast` trees
+  that have been modified to have references to parent nodes. Patch by Jelle
+  Zijlstra.
+
+- gh-issue-112672: Support building :mod:`tkinter` with Tcl 9.0.
+
+- gh-issue-65454: :func:`unittest.mock.Mock.attach_mock` no longer triggers
+  a call to a ``PropertyMock`` being attached.
+
+- gh-issue-81936: :meth:`!help` and :meth:`!showtopic` methods now respect a
+  configured *output* argument to :class:`!pydoc.Helper` and not use the
+  pager in such cases. Patch by Enrico Tröger.
+
+- gh-issue-119577: The :exc:`DeprecationWarning` emitted when testing the
+  truth value of an :class:`xml.etree.ElementTree.Element` now describes
+  unconditionally returning ``True`` in a future version rather than raising
+  an exception in Python 3.14.
+
+- gh-issue-118908: Limit exposed globals from internal imports and
+  definitions on new REPL startup. Patch by Eugene Triguba and Pablo
+  Galindo.
+
+- gh-issue-119506: Fix :meth:`!io.TextIOWrapper.write` method breaks
+  internal buffer when the method is called again during flushing internal
+  buffer.
+
+Build
+-----
+
+- gh-issue-120671: Fix failing configure tests due to a missing space when
+  appending to CFLAGS.
+
+- gh-issue-120602: Correctly handle LLVM installs with
+  ``LLVM_VERSION_SUFFIX`` when building with ``--enable-experimental-jit``.
+
+- gh-issue-120326: On Windows, fix build error when ``--disable-gil`` and
+  ``--experimental-jit`` options are combined.
+
+- gh-issue-120291: Make the ``python-config`` shell script compatible with
+  non-bash shells.
+
+C API
+-----
+
+- gh-issue-120642: Remove the private ``_Py_CODEUNIT`` type from the public
+  C API. The internal ``pycore_code.h`` header should now be used to get
+  this internal type. Patch by Victor Stinner.
+
+- gh-issue-120858: :c:func:`PyDict_Next` no longer locks the dictionary in
+  the free-threaded build.  The locking needs to be done by the caller
+  around the entire iteration loop.
+
+- gh-issue-120642: Remove the following unstable functions:
+
+  * ``PyUnstable_Replace_Executor()``
+  * ``PyUnstable_SetOptimizer()``
+  * ``PyUnstable_GetOptimizer()``
+  * ``PyUnstable_GetExecutor()``
+  * ``PyUnstable_Optimizer_NewCounter()``
+  * ``PyUnstable_Optimizer_NewUOpOptimizer()``
+
+  Patch by Victor Stinner.
+
+- gh-issue-119344: The critical section API is now public as part of the
+  non-limited C API.
+
+- gh-issue-118789: Add :c:func:`PyUnstable_Object_ClearWeakRefsNoCallbacks`,
+  which clears weakrefs without calling their callbacks.
+
+- gh-issue-117511: Make the :c:type:`PyMutex` public in the non-limited C
+  API.
+
+
 What's New in Python 3.13.0 beta 2?
 ===================================
 
@@ -76,15 +326,9 @@ Core and Builtins
 - gh-issue-117657: Fix data races on the field that stores a pointer to the
   interpreter's main thread that occur in free-threaded builds.
 
-- gh-issue-118507: Speedup :func:`os.path.isjunction` and
-  :func:`os.path.lexists` on Windows with a native implementation.
-
 - gh-issue-118561: Fix race condition in free-threaded build where
   :meth:`!list.extend` could expose uninitialised memory to concurrent
   readers.
-
-- gh-issue-118263: Speed up :func:`os.path.splitroot` &
-  :func:`os.path.normpath` with a direct C call.
 
 - gh-issue-117195: Avoid assertion failure for debug builds when calling
   ``object.__sizeof__(1)``
@@ -181,6 +425,9 @@ Library
 
 - gh-issue-118760: Fix errors in calling Tkinter bindings on Windows.
 
+- gh-issue-118507: Speedup :func:`os.path.isjunction` and
+  :func:`os.path.lexists` on Windows with a native implementation.
+
 - gh-issue-118772: Allow :class:`typing.TypeVar` instances without a default
   to follow instances without a default in some cases. Patch by Jelle
   Zijlstra.
@@ -188,6 +435,9 @@ Library
 - gh-issue-110863: :func:`os.path.realpath` now suppresses any
   :exc:`OSError` from :func:`os.readlink` when *strict* mode is disabled
   (the default).
+
+- gh-issue-118263: Speed up :func:`os.path.splitroot` &
+  :func:`os.path.normpath` with a direct C call.
 
 - gh-issue-118033: Fix :func:`dataclasses.dataclass` not creating a
   ``__weakref__`` slot when subclassing :class:`typing.Generic`.
@@ -436,9 +686,6 @@ Core and Builtins
 - gh-issue-118090: Improve :exc:`SyntaxError` message for empty type param
   brackets.
 
-- gh-issue-102511: Fix :func:`os.path.normpath` for UNC paths on Windows.
-  Speed up :func:`os.path.splitroot` with a native implementation.
-
 - gh-issue-117958: Added a ``get_jit_code()`` method to access JIT compiled
   machine code from the UOp Executor when the experimental JIT is enabled.
   Patch by Anthony Shaw.
@@ -492,12 +739,6 @@ Core and Builtins
 - gh-issue-115776: Statically allocated objects are, by definition, immortal
   so must be marked as such regardless of whether they are in extension
   modules or not.
-
-- gh-issue-117641: Speedup :func:`os.path.commonpath` on Unix.
-
-- gh-issue-117636: Speedup :func:`os.path.join`.
-
-- gh-issue-117607: Speedup :func:`os.path.relpath`.
 
 - gh-issue-117385: Remove unhandled ``PY_MONITORING_EVENT_BRANCH`` and
   ``PY_MONITORING_EVENT_EXCEPTION_HANDLED`` events from
@@ -644,6 +885,9 @@ Library
 - gh-issue-118107: Fix :mod:`zipimport` reading of ZIP64 files with file
   entries that are too big or offset too far.
 
+- gh-issue-102511: Fix :func:`os.path.normpath` for UNC paths on Windows.
+  Speed up :func:`os.path.splitroot` with a native implementation.
+
 - gh-issue-117535: Change the unknown filename of :mod:`warnings` from
   ``sys`` to ``<sys>`` to clarify that it's not a real filename.
 
@@ -705,8 +949,12 @@ Library
 - gh-issue-117348: Largely restored import time performance of configparser
   by avoiding dataclasses.
 
+- gh-issue-117641: Speedup :func:`os.path.commonpath` on Unix.
+
 - gh-issue-117663: Fix ``_simple_enum`` to detect aliases when multiple
   arguments are present but only one is the member value.
+
+- gh-issue-117636: Speedup :func:`os.path.join`.
 
 - gh-issue-117618: Support ``package.module`` as ``filename`` for ``break``
   command of :mod:`pdb`
@@ -717,6 +965,8 @@ Library
   them.
 
   The old constants are preserved for backwards compatibility.
+
+- gh-issue-117607: Speedup :func:`os.path.relpath`.
 
 - gh-issue-117586: Speed up :meth:`pathlib.Path.glob` by working with
   strings internally.
@@ -978,12 +1228,6 @@ What's New in Python 3.13.0 alpha 6?
 Core and Builtins
 -----------------
 
-- gh-issue-117648: Improve performance of :func:`os.path.join` and
-  :func:`os.path.expanduser`.
-
-- gh-issue-117584: Raise :exc:`TypeError` for non-paths in
-  :func:`posixpath.relpath()`.
-
 - gh-issue-117494: Refactored the instruction sequence data structure out of
   compile.c into instruction_sequence.c.
 
@@ -1024,13 +1268,6 @@ Core and Builtins
 - gh-issue-109120: Added handle of incorrect star expressions, e.g ``f(3,
   *)``. Patch by Grigoryev Semyon
 
-- gh-issue-117381: Fix error message for :func:`ntpath.commonpath`.
-
-- gh-issue-117349: Optimise several functions in :mod:`os.path`.
-
-- gh-issue-117335: Raise TypeError for non-sequences for
-  :func:`ntpath.commonpath`.
-
 - gh-issue-117266: Fix crashes for certain user-created subclasses of
   :class:`ast.AST`. Such classes are now expected to set the
   ``_field_types`` attribute.
@@ -1050,10 +1287,6 @@ Core and Builtins
 - gh-issue-117108: The cycle GC now chooses the size of increments based on
   the total heap size, instead of the rate of object creation. This ensures
   that it can keep up with growing heaps.
-
-- gh-issue-117114: Make :func:`os.path.isdevdrive` available on all
-  platforms. For those that do not offer Dev Drives, it will always return
-  ``False``.
 
 - gh-issue-116735: For ``INSTRUMENTED_CALL_FUNCTION_EX``, set ``arg0`` to
   ``sys.monitoring.MISSING`` instead of ``None`` for
@@ -1109,6 +1342,12 @@ Core and Builtins
 Library
 -------
 
+- gh-issue-117648: Improve performance of :func:`os.path.join` and
+  :func:`os.path.expanduser`.
+
+- gh-issue-117584: Raise :exc:`TypeError` for non-paths in
+  :func:`posixpath.relpath()`.
+
 - gh-issue-117467: Preserve mailbox ownership when rewriting in
   :func:`mailbox.mbox.flush`. Patch by Tony Mountifield.
 
@@ -1119,12 +1358,19 @@ Library
   keeps the traceback of :class:`CancelledError`, :class:`TimeoutError` and
   :class:`InvalidStateError` which are raised in the coroutine.
 
+- gh-issue-117381: Fix error message for :func:`ntpath.commonpath`.
+
 - gh-issue-117337: Deprecate undocumented :func:`!glob.glob0` and
   :func:`!glob.glob1` functions. Use :func:`glob.glob` and pass a directory
   to its *root_dir* argument instead.
 
+- gh-issue-117349: Optimise several functions in :mod:`os.path`.
+
 - gh-issue-117348: Refactored :meth:`configparser.RawConfigParser._read` to
   reduce cyclometric complexity and improve comprehensibility.
+
+- gh-issue-117335: Raise TypeError for non-sequences for
+  :func:`ntpath.commonpath`.
 
 - gh-issue-66449: :class:`configparser.ConfigParser` now accepts unnamed
   sections before named ones, if configured to do so.
@@ -1163,6 +1409,10 @@ Library
 
 - gh-issue-117084: Fix :mod:`zipfile` extraction for directory entries with
   the name containing backslashes on Windows.
+
+- gh-issue-117114: Make :func:`os.path.isdevdrive` available on all
+  platforms. For those that do not offer Dev Drives, it will always return
+  ``False``.
 
 - gh-issue-117110: Fix a bug that prevents subclasses of :class:`typing.Any`
   to be instantiated with arguments. Patch by Chris Fu.
