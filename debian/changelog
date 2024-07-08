@@ -1,3 +1,9 @@
+python3.13 (3.13.0~b3-1+focal1) focal; urgency=medium
+
+  * Python 3.13.0 beta 3 release.
+
+ -- Anthony Sottile (deadsnakes) <asottile+deadsnakes@umich.edu>  Mon, 08 Jul 2024 01:23:22 +0000
+
 python3.13 (3.13.0~b2-1+focal1) focal; urgency=medium
 
   * Python 3.13.0 beta 2 release.
