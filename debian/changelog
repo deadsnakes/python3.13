@@ -1,3 +1,9 @@
+python3.13 (3.13.0~rc1-1+focal1) focal; urgency=medium
+
+  * Python 3.13.0 release candidate 1.
+
+ -- Anthony Sottile <asottile@umich.edu>  Sun, 04 Aug 2024 21:40:08 +0000
+
 python3.13 (3.13.0~b3-1+focal1) focal; urgency=medium
 
   * Python 3.13.0 beta 3 release.
